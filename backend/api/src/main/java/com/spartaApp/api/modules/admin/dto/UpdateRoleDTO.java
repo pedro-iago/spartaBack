@@ -1,4 +1,3 @@
 package com.spartaApp.api.modules.admin.dto;
 
-public class UpdateRoleDTO {
-}
+public record UpdateRoleDTO(String newRole) {}

@@ -6,13 +6,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Entidade que representa o protocolo de treino.
+ * O campo 'content' armazena o backup JSON gerado pela IA (n8n).
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -43,7 +49,9 @@ public class Training {
     private String limitations; // Lesões, restrições
 
     // --- Treino Gerado pela IA (Backup JSON) ---
-    @Column(columnDefinition = "JSONB")
+    // 🔥 AJUSTE: Mapeamento explícito para JSONB no PostgreSQL
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
     private String content; // JSON original da IA
 
     // --- Séries Estruturadas (RELAÇÃO PRINCIPAL) ---

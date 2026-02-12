@@ -17,9 +17,8 @@ public record TrainingSetDTO(
         String loadPrescription,
         String technique,
         String notes,
-        Integer setsCompleted,
-        String actualLoad,
-        LocalDateTime completedAt
+        LocalDateTime createdAt
+        // Removidos os campos de execução que agora ficam na Sessão
 ) {
     public static TrainingSetDTO fromEntity(TrainingSet set) {
         return new TrainingSetDTO(
@@ -34,9 +33,7 @@ public record TrainingSetDTO(
                 set.getLoadPrescription(),
                 set.getTechnique(),
                 set.getNotes(),
-                set.getSetsCompleted(),
-                set.getActualLoad(),
-                set.getCompletedAt()
+                set.getCreatedAt()
         );
     }
 }

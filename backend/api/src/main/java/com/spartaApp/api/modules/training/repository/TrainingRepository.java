@@ -1,5 +1,6 @@
 package com.spartaApp.api.modules.training.repository;
 
+import com.spartaApp.api.modules.admin.dto.TimeSeriesDTO; // ⚠️ Import Novo
 import com.spartaApp.api.modules.training.domain.Training;
 import com.spartaApp.api.modules.training.domain.TrainingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,20 +13,26 @@ import java.util.UUID;
 
 public interface TrainingRepository extends JpaRepository<Training, UUID> {
 
-    // Buscar treinos de um aluno específico
+    // --- MÉTODOS EXISTENTES ---
     List<Training> findByUserIdOrderByCreatedAtDesc(UUID userId);
-
-    // Buscar treinos por status
     List<Training> findByStatusOrderByCreatedAtDesc(TrainingStatus status);
-
-    // Buscar treino ativo de um aluno (só pode ter 1 ativo por vez)
     Optional<Training> findByUserIdAndStatus(UUID userId, TrainingStatus status);
 
-    // Buscar todos os treinos pendentes de revisão (para o Personal)
     @Query("SELECT t FROM Training t WHERE t.status = 'PENDING_REVIEW' ORDER BY t.createdAt ASC")
     List<Training> findPendingReview();
 
-    // Buscar treino com sets carregados (evita N+1)
     @Query("SELECT t FROM Training t LEFT JOIN FETCH t.sets WHERE t.id = :id")
     Optional<Training> findByIdWithSets(@Param("id") UUID id);
+
+    // --- NOVOS MÉTODOS PARA O ADMIN ---
+
+    // 1. Contagem para os Cards (Total Ativos, Pendentes, etc)
+    long countByStatus(TrainingStatus status);
+
+    // 2. Gráfico: Treinos Criados por Período
+    @Query(value = "SELECT TO_CHAR(created_at, :pattern) as date, COUNT(*) as value " +
+            "FROM tb_trainings " +
+            "GROUP BY TO_CHAR(created_at, :pattern) " +
+            "ORDER BY date ASC", nativeQuery = true)
+    List<TimeSeriesDTO> findTrainingCreationMetric(@Param("pattern") String pattern);
 }

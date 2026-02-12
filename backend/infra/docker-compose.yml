@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # --- 1. BANCO DE DADOS ---
+  db:
+    image: postgres:15-alpine
+    container_name: sparta-db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: sparta
+    ports:
+      - "5432:5432"
+    volumes:
+      - sparta_data:/var/lib/postgresql/data
+
+  # --- 2. PGADMIN ---
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: sparta-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@sparta.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+  # --- 3. N8N (COM CORREÇÃO DE COOKIE) ---
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: sparta-n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=192.168.1.4
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://192.168.1.4:5678/
+      - N8N_SECURE_COOKIE=false
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  sparta_data:
+  n8n_data:

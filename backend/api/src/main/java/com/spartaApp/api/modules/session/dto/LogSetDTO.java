@@ -1,4 +1,10 @@
 package com.spartaApp.api.modules.session.dto;
 
-public class LogSetDTO {
-}
+import java.util.UUID;
+
+public record LogSetDTO(
+        UUID plannedSetId, // ID do set original (da ficha)
+        Integer repsCompleted,
+        Double weightUsed,
+        Boolean failure
+) {}

@@ -1,4 +1,6 @@
 package com.spartaApp.api.modules.admin.dto;
 
-public class TimeSeriesDTO {
+public interface TimeSeriesDTO {
+    String getDate();
+    Long getValue();
 }
