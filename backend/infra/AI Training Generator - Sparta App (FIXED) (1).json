@@ -1,0 +1,235 @@
+{
+  "name": "AI Training Generator - Sparta App (FIXED)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "training-generator",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4cd4a422-900f-4c06-9eae-ebff5c375ddf",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -528,
+        96
+      ],
+      "webhookId": "training-generator"
+    },
+    {
+      "parameters": {
+        "url": "=http://192.168.1.16:8080/exercises/catalog",
+        "options": {}
+      },
+      "id": "47ef45d2-74c7-4272-b9c8-eb6aec7a315b",
+      "name": "Fetch Exercise Catalog",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -336,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega dados do webhook (Agora com dados da Anamnese!)\nconst training = $('Webhook').first().json.body;\n\n// Pega catálogo\nconst catalogItems = $('Fetch Exercise Catalog').all();\nconst catalog = catalogItems.map(item => item.json);\n\n// Define contexto de lesões (Prioriza anamnese, fallback para limitações manuais)\nconst injuries = training.injuries || training.limitations || 'Nenhuma';\nconst conditions = training.medicalConditions || 'Nenhuma';\n\n// Monta prompt Turbinado\nconst prompt = `\n# CONTEXTO\nVocê é o \"Sparta Brain\", uma IA especialista em fisiologia do exercício e reabilitação.\n\n# PERFIL DO ALUNO (ANAMNESE)\n* Nome: ${training.userName}\n* Idade: ${training.age} anos\n* Peso: ${training.weight} kg\n* Nível: ${training.level}\n* Objetivo: ${training.focus}\n* Frequência: ${training.daysPerWeek} dias/semana\n\n# QUADRO CLÍNICO (CRÍTICO - LEIA COM ATENÇÃO)\n* Lesões/Dores: ${injuries}\n* Condições Médicas: ${conditions}\n* REGRAS DE SEGURANÇA: Se houver lesão citada acima, você DEVE excluir exercícios perigosos para essa região e substituir por variantes seguras do catálogo. (Ex: Dor no joelho -> Evitar Extensora pesada, focar em posterior ou isometria se seguro).\n\n# CATÁLOGO DE EXERCÍCIOS (USE APENAS ESTES)\n${JSON.stringify(catalog, null, 2)}\n\n# REGRAS CRÍTICAS DE SISTEMA\n1. Use APENAS exercícios do catálogo acima (Verifique o UUID).\n2. Use o campo \"id\" (UUID) exato do catálogo.\n3. NUNCA invente exercícios ou UUIDs.\n4. Retorne JSON puro sem markdown.\n\n# PROTOCOLO SPARTA\n- Iniciante: 8-10 séries/semana por grupo\n- Intermediário: 10-16 séries/semana\n- Avançado: 16-22 séries/semana\n\nDescanso:\n- Compostos: 90-120s\n- Acessórios: 60-90s\n- Isoladores: 30-45s\n\n# FORMATO DE SAÍDA (JSON)\n{\n  \"planName\": \"Nome criativo do plano (Ex: Protocolo Joelho Blindado)\",\n  \"description\": \"Explicação técnica da estratégia usada considerando as lesões.\",\n  \"workouts\": [\n    {\n      \"dayLetter\": \"A\",\n      \"name\": \"Treino A - Foco\",\n      \"muscleGroups\": \"Grupos musculares\",\n      \"exercises\": [\n        {\n          \"exerciseId\": \"uuid-do-catalogo\",\n          \"order\": 1,\n          \"sets\": 4,\n          \"reps\": \"8-12\",\n          \"restSeconds\": 120,\n          \"loadPrescription\": \"70% 1RM\",\n          \"technique\": \"Controle (3030)\",\n          \"notes\": \"Observação específica (Ex: Amplitude reduzida devido à lesão)\"\n        }\n      ]\n    }\n  ]\n}\n`;\n\nreturn {\n  json: {\n    prompt: prompt,\n    trainingId: training.trainingId\n  }\n};"
+      },
+      "id": "b4a12f3b-58f3-48c2-820b-75376d635aa5",
+      "name": "Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.7
+        }
+      },
+      "id": "bba93637-6276-4308-a36b-e33e1b2bd3bc",
+      "name": "Google Gemini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        96,
+        160
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Fzwd3Tkw9lZiTids",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        0,
+        0
+      ],
+      "id": "79af2c00-595c-4b30-b3ba-25bce938682e",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🔥 CORRIGIDO: Não envolve em array extra\nconst geminiText = $input.first().json.text;\nconst webhookData = $('Webhook').first().json;\nconst trainingId = (webhookData.body && webhookData.body.trainingId) || webhookData.trainingId;\n\n// Limpa markdown\nlet cleanJson = geminiText.replace(/```json\\n?|```/g, '').trim();\n\nlet parsed;\ntry {\n    parsed = JSON.parse(cleanJson);\n    if (Array.isArray(parsed)) {\n        parsed = parsed[0];\n    }\n} catch (e) {\n    throw new Error('JSON inválido do Gemini: ' + e.message);\n}\n\n// 🎯 RETORNA OBJETO DIRETO (não array)\nconst finalPayload = {\n    trainingId: trainingId,\n    planName: parsed.planName || 'Plano Sparta AI',\n    description: parsed.description || 'Treino gerado pela IA',\n    workouts: (parsed.workouts || []).map(w => ({\n        dayLetter: w.dayLetter || 'A',\n        name: w.name || 'Treino',\n        muscleGroups: w.muscleGroups || 'Geral',\n        exercises: (w.exercises || [])\n            .filter(ex => ex.exerciseId)\n            .map(ex => ({\n                exerciseId: ex.exerciseId,\n                order: parseInt(ex.order) || 1,\n                sets: parseInt(ex.sets) || 3,\n                reps: String(ex.reps || '10-12'),\n                restSeconds: parseInt(ex.restSeconds) || 60,\n                loadPrescription: ex.loadPrescription || 'Moderada',\n                technique: ex.technique || 'Nenhuma',\n                notes: ex.notes || ''\n            }))\n    }))\n};\n\n// ✅ IMPORTANTE: Retorna como item único\nreturn { json: finalPayload };"
+      },
+      "id": "cb1df336-f3dc-407a-a83c-b8b3a70f2db1",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.1.16:8080/trainings/webhook/ai-response",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Sparta-Api-Key",
+              "value": "132522!Ip#2026!"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "907d749e-e8d7-4667-969b-b0b9cd4a8961",
+      "name": "Send to Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        480,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, trainingId: $json.trainingId } }}",
+        "options": {}
+      },
+      "id": "deebdf65-ee00-47f3-8040-e5b983cce142",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        672,
+        96
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Fetch Exercise Catalog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Exercise Catalog": {
+      "main": [
+        [
+          {
+            "node": "Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Send to Backend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Backend": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "f5c73054-a311-4c7c-bce6-45b9f0177a05",
+  "meta": {
+    "instanceId": "13fb9ac5344951abd763d23b0aa6cee673f996f196b20a5dee7af6e222fa920a"
+  },
+  "id": "EeHKfVxKTpt8hheHXk2-g",
+  "tags": []
+}
