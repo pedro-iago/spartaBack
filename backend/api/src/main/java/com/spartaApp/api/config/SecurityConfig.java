@@ -33,30 +33,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable) // Desabilita CSRF pois usamos Token/Stateless
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Aplica a config de CORS abaixo
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Endpoints de Autenticação (Abertos para login/registro)
+                        // 1. Endpoints Públicos (Login e Registro)
                         .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/register").permitAll()
 
-                        // 2. Integração Sparta Brain (n8n no ZimaOS)
-                        // O permitAll aqui permite que o n8n chegue ao Controller.
-                        // Lá, você validará o Header "X-Sparta-Api-Key".
+                        // 2. Webhooks (n8n/IA)
                         .requestMatchers(HttpMethod.POST, "/trainings/webhook/**").permitAll()
 
-                        // 3. Catálogo de Exercícios (Aberto para consulta da IA)
+                        // 3. Catálogo de Exercícios (Leitura pública se necessário, ou mude para authenticated)
                         .requestMatchers(HttpMethod.GET, "/exercises/catalog").permitAll()
 
-                        // 4. Rotas Protegidas (Exigem Cookie auth_token via SecurityFilter)
-                        .requestMatchers("/trainings/**").authenticated()
-                        .requestMatchers("/exercises/**").authenticated()
+                        // 4. Swagger / Docs (Opcional, bom deixar liberado em dev)
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // 5. Bloqueio padrão
+                        // 5. Todo o resto exige autenticação
                         .anyRequest().authenticated()
                 )
-                // O seu filtro atual processa Cookies. Ele ignorará o webhook se o cookie for nulo,
-                // mas como a rota está permitAll, o Spring deixará passar para o Controller.
+                // Adiciona seu filtro de segurança (JWT) antes do filtro padrão do Spring
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -66,22 +62,29 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Configuração para aceitar requisições do seu ambiente local e mobile
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        // --- ORIGENS PERMITIDAS ---
+        // Permite localhost (Frontend da Colaboradora e seu)
+        // Permite IPs de rede local (Seu NAS/Celular)
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:5173", // React Vite Local
+                "http://localhost:8080", // Própria API
+                "*"                      // Redes locais/Mobile (cuidado em produção, mas ok para dev)
+        ));
 
-        // Headers necessários para o n8n e para o seu Frontend React
+        // --- MÉTODOS PERMITIDOS ---
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
+
+        // --- HEADERS PERMITIDOS ---
         configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "X-Sparta-Api-Key",
+                "Authorization",    // Crucial para o Bearer Token
+                "Content-Type",     // JSON
+                "X-Sparta-Api-Key", // Webhook n8n
                 "Accept",
                 "Origin",
                 "X-Requested-With"
         ));
 
-        configuration.setAllowCredentials(true);
-        configuration.setExposedHeaders(List.of("Authorization", "Set-Cookie"));
+        configuration.setAllowCredentials(true); // Permite Cookies/Auth Headers
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

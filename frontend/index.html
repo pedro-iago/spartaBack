@@ -1,0 +1,319 @@
+<!doctype html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <link rel="icon" type="image/png" href="/icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <meta name="theme-color" content="#171512" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <title>Sparta Fitness AI</title>
+
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Noto+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#d59f39",
+              "primary-dark": "#b0822d",
+              "background-light": "#f5f5f5",
+              "background-dark": "#1a1a1a",
+              charcoal: "#171512",
+              "surface-dark": "#292929",
+              "surface-darker": "#110f0d",
+              "border-dark": "#36322b",
+              "text-secondary": "#b6aea0",
+              "card-dark": "#292929",
+              "input-dark": "#111111",
+              success: "#4CAF50",
+              warning: "#FFEB3B",
+              danger: "#F44336",
+            },
+            fontFamily: {
+              display: ["Lexend", "sans-serif"],
+              body: ["Noto Sans", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              "2xl": "1rem",
+              full: "9999px",
+            },
+            backgroundImage: {
+              "metal-gradient":
+                "linear-gradient(135deg, #d59f39 0%, #b88626 100%)",
+              "page-dark":
+                "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(30, 42, 46, 0.95) 0%, #1a1a1a 45%, #0f1416 100%)",
+            },
+            boxShadow: {
+              "metal-edge": "inset 0 1px 0 rgba(255,255,255,0.1)",
+              glow: "0 0 15px rgba(213, 159, 57, 0.15)",
+              "inner-strong": "inset 0 2px 4px 0 rgba(0, 0, 0, 0.6)",
+              chiseled:
+                "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 4px 6px -1px rgba(0, 0, 0, 0.3)",
+              metallic:
+                "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+              "chisled-gold": "4px 4px 0px 0px rgba(213, 159, 57, 0.2)",
+              "glass": "0 8px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06)",
+            },
+            backdropBlur: {
+              xs: "4px",
+              card: "12px",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      body {
+        min-height: 100vh;
+        background-color: #1a1a1a;
+        margin: 0;
+        padding: 0;
+      }
+      ::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      @keyframes flicker {
+        0%,
+        100% {
+          opacity: 1;
+          filter: brightness(1);
+        }
+        50% {
+          opacity: 0.9;
+          filter: brightness(0.95);
+        }
+        52% {
+          opacity: 0.8;
+          filter: brightness(1.2);
+        }
+        54% {
+          opacity: 0.95;
+          filter: brightness(1);
+        }
+      }
+      .animate-flicker {
+        animation: flicker 4s infinite;
+      }
+
+      @keyframes scan {
+        0% {
+          top: 0%;
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          top: 100%;
+          opacity: 0;
+        }
+      }
+      .scan-line {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: #d59f39;
+        box-shadow: 0 0 4px #d59f39;
+        animation: scan 3s linear infinite;
+        z-index: 20;
+      }
+
+      .bg-grid-pattern {
+        background-image:
+          linear-gradient(#333 1px, transparent 1px),
+          linear-gradient(90deg, #333 1px, transparent 1px);
+        background-size: 20px 20px;
+        background-position: center center;
+        opacity: 0.05;
+      }
+
+      .chiseled-input {
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+      .custom-radio-bg {
+        transition: all 0.2s;
+      }
+
+      input:checked + .custom-radio-bg {
+        background-color: #d59f39;
+        color: #171512;
+        border-color: #d59f39;
+        box-shadow: 0 0 10px rgba(213, 159, 57, 0.4);
+      }
+
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 48;
+      }
+      .glass-card {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+
+      /* Efeito 3D tipo glass: sombra suave (flutuante), destaque no topo e gradiente interno */
+      .glass-card-3d {
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 1rem;
+        box-shadow:
+          0 1px 0 0 rgba(255, 255, 255, 0.1),
+          0 4px 14px rgba(0, 0, 0, 0.12),
+          0 14px 36px -10px rgba(0, 0, 0, 0.3);
+      }
+      .glass-card-3d::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(
+          135deg,
+          rgba(213, 159, 57, 0.05) 0%,
+          transparent 45%,
+          rgba(255, 255, 255, 0.03) 100%
+        );
+        pointer-events: none;
+      }
+      .glass-card-3d > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* PageHeader — padrão para todas as páginas */
+      .page-header {
+        background: #36393f;
+        border-radius: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      /* AI Assistant — estética Aura AI */
+      @keyframes ai-orbe-pulse {
+        0%, 100% { opacity: 0.7; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.05); }
+      }
+      @keyframes ai-scan-h {
+        0% { transform: translateX(-100%); opacity: 0; }
+        5% { opacity: 0.6; }
+        95% { opacity: 0.6; }
+        100% { transform: translateX(100%); opacity: 0; }
+      }
+      .ai-aura-bg {
+        background: radial-gradient(ellipse 80% 70% at 50% 100%, rgba(213, 159, 57, 0.08) 0%, rgba(176, 130, 45, 0.04) 30%, transparent 60%),
+          radial-gradient(ellipse 60% 50% at 50% 50%, rgba(213, 159, 57, 0.05) 0%, transparent 50%);
+      }
+      .ai-orbe-central {
+        position: absolute;
+        width: min(60vmin, 280px);
+        height: min(60vmin, 280px);
+        left: 50%;
+        top: 45%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, rgba(230, 180, 80, 0.2) 0%, rgba(213, 159, 57, 0.15) 40%, rgba(176, 130, 45, 0.1) 70%, transparent 100%);
+        filter: blur(40px);
+        pointer-events: none;
+        animation: ai-orbe-pulse 6s ease-in-out infinite;
+      }
+      .ai-orbe-bubble {
+        width: 12px;
+        height: 12px;
+        min-width: 12px;
+        min-height: 12px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, rgba(230, 180, 80, 0.95) 0%, rgba(213, 159, 57, 0.9) 50%, rgba(176, 130, 45, 0.8) 100%);
+        box-shadow: 0 0 12px rgba(213, 159, 57, 0.5);
+      }
+      .ai-panel-aura {
+        background: rgba(23, 21, 18, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 0 0 1px rgba(213, 159, 57, 0.08), 0 24px 48px -12px rgba(0, 0, 0, 0.5);
+      }
+      .ai-message-assistant {
+        background: linear-gradient(135deg, rgba(30, 27, 22, 0.95) 0%, rgba(23, 21, 18, 0.98) 100%);
+        border: 1px solid rgba(213, 159, 57, 0.2);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+      }
+      .ai-message-user {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .ai-input-aura {
+        background: rgba(23, 21, 18, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 24px;
+      }
+      .ai-input-aura:focus-within {
+        border-color: rgba(213, 159, 57, 0.35);
+        box-shadow: 0 0 0 1px rgba(213, 159, 57, 0.15);
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+          "react/": "https://esm.sh/react@^19.2.3/",
+          "react": "https://esm.sh/react@^19.2.3",
+          "@google/genai": "https://esm.sh/@google/genai@^1.38.0",
+          "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0"
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/index.css" />
+  </head>
+  <body
+    class="bg-background-dark text-white font-display antialiased selection:bg-primary selection:text-background-dark"
+  >
+    <div id="root"></div>
+    <script type="module" src="/src/index.tsx"></script>
+  </body>
+</html>

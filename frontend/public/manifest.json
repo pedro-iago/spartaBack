@@ -1,0 +1,15 @@
+{
+    "name": "Sparta Fitness AI",
+    "short_name": "Sparta",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#171512",
+    "theme_color": "#D59F39",
+    "icons": [
+    {
+        "src": "icon.png",
+        "sizes": "512x512",
+        "type": "image/png"
+    }
+    ]
+}

@@ -1,0 +1,25 @@
+/**
+ * URL da foto de fundo do card "Treino de hoje" (dashboard do aluno).
+ * Cole o link externo aqui. Ex.: 'https://exemplo.com/sua-imagem.jpg'
+ * Se vazio, o card usa o fundo dourado padrão.
+ */
+export const TREINO_HOJE_ILLUSTRATION_URL = '/teste.jpg';
+
+export const IMAGES = {
+  LOGO_SHIELD: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAD7jTlj1mFLyhrTeGLyxo3LEEaKcFU-9CnUXYaXaEPygBDOd5lI-T9a_lUfB_1ORDvURynPeIOc6LhF9MPU6Wfhq2eST3HsX4GjRoqLTB__w_csbMbBRw7F23c2Zivf4uO1mTgQRYRpZApHSaw3htxFzA1YxxYE5MRR9zZfT4y9lMuqvXiLrHXXKHhPiXT7NU_20tow_qGhwE1_BWklhL3Z-CCP6khPSkZDV2t0R-gK-7ZjQ2MCzQkYiJT7ZKUaQhJWiDZctCpp2Xs',
+  SPLASH_BG: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDt36edbKnEzQyCo9C6XLGGnBvlK8iZp_T3G5BPMWTD3PvsjWTkQ-shGsc_Ix0Ax0qSJUJl8uFd9FX_M_hhJLNmpR8Z9UM9Jo5uwp36u69AjBDDM_ZR69HJiUXS126P2oLOKnLLjWrcnQOdQifEnqdk6lLCXqHbatQHJYU5U_dAVkWJP7RecYocddkkvMQeapY8GxGUfb6LHM0h5d2LDHoCLuiXV4TkcNNO7cpqJzW_fNhqIJmpo5VxGKpkrbKUu-y_6shKN0swH3C1',
+  GOAL_WEIGHT_LOSS: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCAKQvPTsEvpg7JXpVlenRVQD28LvPzdtZ5HXm6oKyEM5iv7-8AlRJf9bDLpMFvzqctWMcNc22DC6kCcK1SdkRiCEFRh_iitaPfTi-yWh-TRMciIqPTIH2KucN7L0eotbbnPugrmMLzyVfetsKRgZ-unSSZSoBk4y-YFtRH6KEPHdVg8olWHgjx6ukY26fLm9AXdi3bA_KgXhLUNo-2718IALCVHx7MKlgRfCP_6EkKhlzXjO-iS9K1mWsNfKvRaoYK68DnHbXKP6UT',
+  GOAL_HYPERTROPHY: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCZDLn_q-Yif7g141XWZXKOeDCjcwqXv0D1fcbM8XGiQMz9VW7OEWN7ExB3j-iKfZyOa7NJ95mpVYNrA4J-Rwz7UpRjZEkQbkMOMmKL2_vBZ_d4Jg-9fnLDoIghGD58SlbhUP3AwUmIYoURS5zW8C09Fug9049ge9LgzNeXRRLvWL_vsdrEJmkpceBKpcbywTTTbnBmjuc3dWbimVxJy9qJLmzr8nX7iUoHJapeh2-97xnPijoiSyhwhBseMhfZNCp4XLF2e-Vq6FzT',
+  GOAL_CONDITIONING: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD2KddoLqFWUEpJhQEJJuA3p9clb3ptk3stBiuVKYI2CQOg3uMdIhVHen2NmYCq-oMh9rLjDqaRkovmEmNFpBwIIXkiC6yd-VrZbjlfIE6ZTLXuNkqb4Vs0D_80MZN7-aaJxeoXZxPBoHG-09ndWH4gUB5gugtha1n7dnel9Ba7ObxLiReKPZSc11r73XV9lEtyAJV0__2Frh4L6nSLMRFMgz0ICqX5Au8Yb-UX6YgP2OCab-ZJuESS2BfeUDhl_4FRiHiS5P8Lxyyu',
+  AVATAR_PLACEHOLDER: 'https://lh3.googleusercontent.com/aida-public/AB6AXuABK9rWFtVS_Y_lw8IwTS2Rpjn89AULIZJDCUX89g9cUcyrmH4b5d3FE6d1OfgMmaqqF2fqIl7cyjKECT9dYElNwqWwVOCZAgricuNQhv0g8gSNnpUf2T0QsGPrqjTGyW9kpRGFC8LTyRm2dObNeIoljXWPOdGrwdGf7GrECIbLUwin96AtfCLPzB74dsEHrZafliyYXF2bC6qTXki_qrrPOPzNrPY6DLeBQn8N-8mUfmj7kT1zeQLpDr499FkxqphMTMqBGIIwUyK7',
+  WORKOUT_MAIN: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAyRkLuxp7ACAeYbQkXYYhzA7nOZKJadG2FzX8Ick86Ml3u8bA3a08VLeWAuarTmS4v3SoIhjhVnPmsHUmNDOfoWGAVYYQYmBakd6IECz6vjPMgrwoVH9IxsYUhCDsawEASW0W0dcTnIEobOQSbUw_8e9zV-bn7kCQ95awQBF0Xy5A5EVgM4Vxt_4luVsKNzxYRSoIT9f6yzkeLVRfb_MMddQCjzOiEvJ3t_BsNAQDk3sUUh5A4GBkSlBAadkV4M87PmzbPITR3ySAy',
+  MEAL_PLACEHOLDER: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAT-fwapE-QPqDUIIbHUdOeTOI2KXWoXkXwbfX9gD7qEstFHho7uRqRXm22mEq24itm71bQvrI3V4czDBUjCcBFo98XKN07vJPln6RCmRqQePfI4X262W9JaT7tbO0dTPSOcsorBsB276fiOHT001N8mXffP3OukFpsdi3iN1TEpOGQoX9WABi34KTenY5B37pJi7ZkLv4sYvicxvRUshuwQPsfHE9PjReprchvAwWvnGBszVUdRTxz5hBvSWSHl-B5U0A5oVq6-PWU',
+  INSTRUCTOR: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAL-5AszS-vZ2Nrt08IzBUtaVBkHurc3XpJT5lH_zu0TX5GXqe3D6W1P7uRnsAgOG4ENhdXdEjxgVWvWeqW-r9OSvTuvwEq7SctDWQPBf7FbK36SGmFj6czywlbPY0tJ--eBSCBCvJaUL2y-31sZTwY1cyFVPuqL461bJsQRlDossgFHt8USGaWX0gNHQaoOG8C_n5BIOs981LweXPiekl2pHL-WYeLMBJraEaXWteRe5Ys4wwjxq0KBilJUpDmmgGcq0meRYhqcjAn',
+  /** Silhueta composição corporal (figura balanceada/atlética) */
+  COMPOSICAO_CORPORAL: '/composicao-corporal.png',
+  /** Fotos de exemplo da dieta (perfil) */
+  FOOD_1: '/food1.jpg',
+  FOOD_2: '/food2.jpg',
+  FOOD_3: '/food3.jpg',
+  FOOD_4: '/food4.jpg',
+};

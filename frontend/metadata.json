@@ -1,0 +1,7 @@
+{
+  "name": "Sparta Fitness AI",
+  "description": "A high-performance fitness application featuring AI-powered workout protocols, meal scanning, and real-time training insights with a premium metallic dark aesthetic.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
