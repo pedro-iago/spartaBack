@@ -1,4 +1,3 @@
-// --- ENUMS (Domínio) ---
 export enum UserRole {
     ADMIN = 'ADMIN',
     PROFESSIONAL = 'PROFESSIONAL',
@@ -28,7 +27,7 @@ export enum MuscleGroup {
     UNKNOWN = 'Geral'
 }
 
-// --- AUTH DTOs (Novos - Para Login e Registro) ---
+// --- DTOs de Autenticação (Ajustados para o Backend Java) ---
 
 export interface LoginDTO {
     email: string;
@@ -39,26 +38,22 @@ export interface RegisterDTO {
     name: string;
     email: string;
     password: string;
-    role?: UserRole | string; // Opcional, backend define padrão STUDENT se omitido
+    role?: UserRole | string;
 }
 
-/** Usuário básico retornado pela API no Login */
-export interface User {
-    id?: number; // Opcional pois o JWT já carrega a identidade
-    name: string;
-    email: string;
-    role: UserRole;
-}
-
-/** Resposta do endpoint /auth/login */
+/** * 🔥 CORREÇÃO CRÍTICA: 
+ * O Backend retorna: { "token": "...", "name": "...", "role": "..." }
+ * Não existe um objeto "user" aninhado.
+ */
 export interface LoginResponseDTO {
     token: string;
-    user: User;
+    name: string;
+    role: UserRole;
+    email?: string; // O backend pode ou não mandar o email de volta
 }
 
-// --- DOMÍNIO FITNESS (Mantido) ---
+// --- Interfaces de Domínio ---
 
-/** Badge de técnica avançada (ex.: Ponto de Falha, Drop Set) */
 export type ExerciseTechnique = 'Ponto de Falha' | 'Drop Set' | 'Biseto' | 'Rest-Pause' | 'Cluster' | string;
 
 export interface Exercise {
@@ -126,12 +121,12 @@ export interface UserBioimpedance {
     nextDate?: string;
 }
 
-/** Estado Global da Aplicação (Context) */
 export interface UserState {
     name: string;
-    email?: string; // Adicionado para consistência
-    role: UserRole; 
-    isAuthenticated?: boolean; // Controle de sessão no front
+    email?: string;
+    role: UserRole | null;
+    isAuthenticated: boolean;
+    token?: string | null;
     goal?: Goal;
     frequency?: number;
     level?: ExperienceLevel;

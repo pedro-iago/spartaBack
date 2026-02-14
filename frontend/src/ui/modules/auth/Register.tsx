@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../../shared/services/authService';
-// 🔥 Importamos o contexto para poder logar o usuário automaticamente
 import { useSparta } from '../../../shared/context/SpartaContext';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
-  const { updateUser } = useSparta(); // Hook para atualizar o estado global
+  const { updateUser } = useSparta();
   const [loading, setLoading] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -31,7 +30,7 @@ const Register: React.FC = () => {
     try {
       setLoading(true);
       
-      // 1. Cria a conta no Backend
+      // 1. Cria a conta no Backend (Assume STUDENT)
       await authService.register({
         name: formData.name,
         email: formData.email,
@@ -39,27 +38,28 @@ const Register: React.FC = () => {
         role: 'STUDENT'
       });
 
-      // 2. 🔥 AUTO-LOGIN (A Mágica acontece aqui)
-      // Usamos as mesmas credenciais para pegar o token imediatamente
+      // 2. 🔥 AUTO-LOGIN: Backend retorna { token, name, role }
       const loginData = await authService.login(formData.email, formData.password);
 
-      // 3. Salva no Storage e Atualiza o Contexto
-      localStorage.setItem('@sparta:token', loginData.token);
-      localStorage.setItem('@sparta:user', JSON.stringify({ 
-        name: loginData.name, 
-        role: loginData.role,
-        email: loginData.email 
-      }));
-
-      updateUser({
+      // 3. Monta objeto User
+      const user = {
         name: loginData.name,
         role: loginData.role,
-        email: loginData.email,
+        email: formData.email, // Usa o do form
+        token: loginData.token
+      };
+
+      // 4. Salva no Storage e Atualiza Contexto
+      localStorage.setItem('@sparta:token', loginData.token);
+      localStorage.setItem('@sparta:user', JSON.stringify(user));
+
+      updateUser({
+        ...user,
         isAuthenticated: true
       });
 
-      // 4. Redireciona para o início da Anamnese (Objetivos)
-      navigate('/goals');
+      // 5. Redireciona para o início (Fluxo de Aluno)
+      navigate('/dashboard/student');
 
     } catch (error) {
       console.error(error);
@@ -82,10 +82,7 @@ const Register: React.FC = () => {
           <div>
             <label className="block text-sm font-medium leading-6 text-white">Nome Completo</label>
             <div className="mt-2">
-              <input
-                name="name"
-                type="text"
-                required
+              <input name="name" type="text" required
                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-primary sm:text-sm sm:leading-6"
                 onChange={handleChange}
               />
@@ -95,10 +92,7 @@ const Register: React.FC = () => {
           <div>
             <label className="block text-sm font-medium leading-6 text-white">Email</label>
             <div className="mt-2">
-              <input
-                name="email"
-                type="email"
-                required
+              <input name="email" type="email" required
                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-primary sm:text-sm sm:leading-6"
                 onChange={handleChange}
               />
@@ -108,10 +102,7 @@ const Register: React.FC = () => {
           <div>
             <label className="block text-sm font-medium leading-6 text-white">Senha</label>
             <div className="mt-2">
-              <input
-                name="password"
-                type="password"
-                required
+              <input name="password" type="password" required
                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-primary sm:text-sm sm:leading-6"
                 onChange={handleChange}
               />
@@ -121,10 +112,7 @@ const Register: React.FC = () => {
           <div>
             <label className="block text-sm font-medium leading-6 text-white">Confirmar Senha</label>
             <div className="mt-2">
-              <input
-                name="confirmPassword"
-                type="password"
-                required
+              <input name="confirmPassword" type="password" required
                 className="block w-full rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-primary sm:text-sm sm:leading-6"
                 onChange={handleChange}
               />
@@ -132,9 +120,7 @@ const Register: React.FC = () => {
           </div>
 
           <div>
-            <button
-              type="submit"
-              disabled={loading}
+            <button type="submit" disabled={loading}
               className="flex w-full justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-bold leading-6 text-black shadow-sm hover:bg-primary/80 disabled:opacity-50 uppercase tracking-wide"
             >
               {loading ? 'CRIANDO...' : 'CRIAR CONTA'}

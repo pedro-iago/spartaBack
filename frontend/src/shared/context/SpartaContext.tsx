@@ -1,11 +1,15 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { UserState, Meal, DietPhoto, Goal, ExperienceLevel, Workout, Exercise } from '../types';
+import { UserState, Meal, DietPhoto, Goal, ExperienceLevel, Workout, Exercise, UserRole } from '../types';
 
 interface SpartaContextData {
   user: UserState;
+  loading: boolean; // Novo: para controlar redirecionamento
   meals: Meal[];
   dietPhotos: DietPhoto[];
+  
+  // Ações
   updateUser: (data: Partial<UserState>) => void;
+  logout: () => void; // Novo
   addMeal: (meal: Meal) => void;
   addDietPhoto: (photo: DietPhoto) => void;
   toggleMeal: (id: string) => void;
@@ -16,24 +20,20 @@ interface SpartaContextData {
 const SpartaContext = createContext<SpartaContextData>({} as SpartaContextData);
 
 export const SpartaProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [user, setUserState] = useState<UserState>(() => {
-    // Tenta recuperar do storage
-    const saved = localStorage.getItem('@sparta:user');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-    // 🔥 ESTADO INICIAL LIMPO (Sem mocks forçados)
-    return {
-      isAuthenticated: false,
-      name: "",
-      role: null,
-      token: null,
-      level: ExperienceLevel.BEGINNER, // Padrão seguro
-      frequency: 3,
-      goal: Goal.HYPERTROPHY
-    };
+  const [loading, setLoading] = useState(true);
+  
+  // Estado inicial do usuário
+  const [user, setUserState] = useState<UserState>({
+    isAuthenticated: false,
+    name: "",
+    role: null,
+    token: null,
+    level: ExperienceLevel.BEGINNER,
+    frequency: 3,
+    goal: Goal.HYPERTROPHY
   });
 
+  // --- LÓGICA DE DIETA E TREINO (MANTIDA) ---
   const [meals, setMeals] = useState<Meal[]>([]);
   const EXAMPLE_DIET_PHOTOS: DietPhoto[] = [
     { id: "ex-1", mealId: "1", mealName: "Café da manhã", imageUrl: "/teste.jpg", createdAt: new Date(Date.now() - 86400000 * 2).toISOString() },
@@ -51,6 +51,31 @@ export const SpartaProvider: React.FC<{children: React.ReactNode}> = ({ children
     } catch { return EXAMPLE_DIET_PHOTOS; }
   });
 
+  // --- EFEITOS DE SESSÃO ---
+  
+  useEffect(() => {
+    const loadSession = () => {
+      const storedUser = localStorage.getItem('@sparta:user');
+      const storedToken = localStorage.getItem('@sparta:token');
+
+      if (storedUser && storedToken) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUserState({
+            ...parsedUser,
+            isAuthenticated: true,
+            token: storedToken // Garante que o token está no state
+          });
+        } catch (error) {
+          console.error("Erro ao restaurar sessão:", error);
+          logout();
+        }
+      }
+      setLoading(false);
+    };
+    loadSession();
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('@sparta:diet-photos', JSON.stringify(dietPhotos));
   }, [dietPhotos]);
@@ -61,8 +86,25 @@ export const SpartaProvider: React.FC<{children: React.ReactNode}> = ({ children
     }
   }, [user]);
 
+  // --- ACTIONS ---
+
   const updateUser = (data: Partial<UserState>) => {
     setUserState(prev => ({ ...prev, ...data }));
+  };
+
+  const logout = () => {
+    localStorage.removeItem('@sparta:user');
+    localStorage.removeItem('@sparta:token');
+    setUserState({
+      isAuthenticated: false,
+      name: "",
+      role: null,
+      token: null,
+      level: ExperienceLevel.BEGINNER,
+      frequency: 3,
+      goal: Goal.HYPERTROPHY
+    });
+    window.location.href = '/login';
   };
 
   const addMeal = (meal: Meal) => {
@@ -86,7 +128,19 @@ export const SpartaProvider: React.FC<{children: React.ReactNode}> = ({ children
   };
 
   return (
-    <SpartaContext.Provider value={{ user, meals, dietPhotos, updateUser, addMeal, addDietPhoto, toggleMeal, completeWorkout, swapExercise }}>
+    <SpartaContext.Provider value={{ 
+      user, 
+      loading, 
+      meals, 
+      dietPhotos, 
+      updateUser, 
+      logout, 
+      addMeal, 
+      addDietPhoto, 
+      toggleMeal, 
+      completeWorkout, 
+      swapExercise 
+    }}>
       {children}
     </SpartaContext.Provider>
   );
