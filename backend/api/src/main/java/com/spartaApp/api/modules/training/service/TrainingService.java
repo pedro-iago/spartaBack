@@ -1,6 +1,8 @@
 package com.spartaApp.api.modules.training.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.spartaApp.api.modules.anamnese.domain.Anamnesis;
+import com.spartaApp.api.modules.anamnese.dto.AnamnesisSummaryDTO;
 import com.spartaApp.api.modules.auth.domain.User;
 import com.spartaApp.api.modules.auth.repository.UserRepository;
 import com.spartaApp.api.modules.exercise.domain.Exercise;
@@ -26,9 +28,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -191,9 +195,24 @@ public class TrainingService {
     }
 
     public List<TrainingResponseDTO> listPendingTrainings() {
-        return trainingRepository.findPendingReview().stream()
+        return trainingRepository.findPendingReviewOrDraft().stream()
                 .map(TrainingResponseDTO::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    /** Lista treinos pendentes (DRAFT ou PENDING_REVIEW) com anamnese do aluno para o profissional avaliar. */
+    public List<PendingReviewDTO> listPendingReviewsWithAnamnesis() {
+        List<PendingReviewDTO> result = new ArrayList<>();
+        for (Training t : trainingRepository.findPendingReviewOrDraft()) {
+            TrainingResponseDTO trainingDto = TrainingResponseDTO.fromEntity(t);
+            AnamnesisSummaryDTO anamnesisDto = null;
+            Optional<Anamnesis> anamnesisOpt = anamnesisRepository.findByUserIdAndActiveTrue(t.getUser().getId());
+            if (anamnesisOpt.isPresent()) {
+                anamnesisDto = AnamnesisSummaryDTO.fromEntity(anamnesisOpt.get());
+            }
+            result.add(new PendingReviewDTO(trainingDto, anamnesisDto));
+        }
+        return result;
     }
 
     @Transactional

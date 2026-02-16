@@ -95,7 +95,7 @@ Tipos principais (espelho no frontend): `LoginResponseDTO`, `User`, `UserRole` (
 
 - **Público:** `/`, `/login` (redirecionamento e login).
 - **Aluno (STUDENT):** `/dashboard/student`, `/student/workouts`, `/student/workout`, `/workout-overview`, `/active-workout`, `/diet`, `/meal-scan`, `/diet/photos`, `/dashboard/perfil`, `/dashboard/perfil/historico`, `/student/profile`.
-- **Profissional (PROFESSIONAL):** `/dashboard/professional`, `/dashboard/professional/students`, `/assistant`.
+- **Profissional (PROFESSIONAL):** `/dashboard/professional`, `/dashboard/professional/solicitacoes`, `/dashboard/professional/students`, `/assistant`.
 - **Admin (ADMIN):** `/dashboard/admin`, `/admin/reports`, `/admin/users`, `/admin/settings`.
 
 Proteção: componente `PrivateRoute` verifica `localStorage @sparta:user` e `role`; em caso de falha redireciona para `/login`.

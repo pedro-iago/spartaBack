@@ -1,110 +1,320 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSparta } from '../../../shared/context/SpartaContext';
+import { useNavigate, useLocation } from "react-router";
+import { useState, useMemo, useEffect } from "react";
+import { toast } from "sonner";
+import { Button } from "@/ui/components/ui/button";
 import { PageHeader } from "@/ui/components/ui/page-header";
-import { IMAGES } from '../../../shared/constants/images';
+import { Input } from "@/ui/components/ui/input";
+import { trainingService } from "@/shared/services/trainingService";
+import type { UpdateTrainingSetDTO } from "@/shared/types";
+import {
+  ArrowLeft,
+  LogOut,
+  Sparkles,
+  ThumbsUp,
+  Settings2,
+  Loader2,
+} from "lucide-react";
+import type { TrainingResponseDTO, TrainingSetDTO } from "@/shared/types";
 
-const InstructorReview: React.FC = () => {
-  const navigate = useNavigate();
-  // Busca user do contexto
-  const { user } = useSparta();
+type LocationState = { trainingId?: string; training?: TrainingResponseDTO } | null;
 
-  if (!user) return <div className="text-white p-4">Carregando...</div>;
-
-  return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#171512]">
-      <div className="sticky top-0 z-50 px-4 py-4 max-w-4xl mx-auto w-full">
-        <PageHeader
-          title="Revisão Técnica"
-          leftSlot={
-            <button onClick={() => navigate('/dashboard')} className="text-white flex items-center justify-center size-10 rounded-full hover:bg-white/10 transition-colors" aria-label="Voltar">
-              <span className="material-symbols-outlined text-2xl">arrow_back</span>
-            </button>
-          }
-          rightSlot={
-            <button className="text-white flex items-center justify-center size-10 rounded-full hover:bg-white/10 transition-colors" aria-label="Mais opções">
-              <span className="material-symbols-outlined text-2xl">more_vert</span>
-            </button>
-          }
-        />
-      </div>
-
-      <main className="flex-1 overflow-y-auto pb-36 bg-[#171512]">
-        <section className="p-4 sm:p-6 lg:p-8 border-b border-border-dark bg-[#171512] max-w-4xl mx-auto">
-          <div className="flex items-start gap-4 sm:gap-5">
-            <div className="relative size-14 sm:size-16 shrink-0 rounded-lg overflow-hidden border border-white/10">
-              <div className="absolute inset-0 bg-cover bg-center" style={{backgroundImage: `url('${IMAGES.INSTRUCTOR}')`}}></div>
-              <div
-                className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
-                style={{
-                  background: "linear-gradient(to bottom, transparent 0%, rgba(15, 20, 22, 0.5) 60%, rgba(15, 20, 22, 0.9) 100%)",
-                }}
-              />
-            </div>
-            <div className="flex flex-col justify-center flex-1 min-w-0">
-              <div className="flex justify-between items-start">
-                <h1 className="text-xl font-bold leading-tight truncate text-white uppercase">{user.name}</h1>
-                <span className="bg-[#333] text-[10px] font-bold px-1.5 py-0.5 rounded text-gray-400 border border-white/5 uppercase tracking-wider">{user.level}</span>
-              </div>
-              <p className="text-primary text-sm font-medium mt-1 uppercase">Foco: {user.goal}</p>
-            </div>
-          </div>
-        </section>
-
-        <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 mb-6 p-3 rounded bg-primary/10 border border-primary/20">
-            <span className="material-symbols-outlined text-primary">psychology</span>
-            <div>
-              <p className="text-primary text-xs font-bold uppercase tracking-widest">Análise Biométrica</p>
-              <p className="text-white text-sm font-medium">Sugestão de Carga Progressiva detectada.</p>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            {user.currentWorkout?.exercises.map((ex, idx) => (
-              <article key={ex.id || idx} className="bg-card-dark rounded-lg p-4 border-l-4 border-primary shadow-lg relative overflow-hidden group">
-                <div className="flex justify-between items-start mb-4 relative z-10 uppercase">
-                  <h3 className="text-lg font-bold text-white tracking-tight">{ex.name}</h3>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] uppercase tracking-wider text-gray-500 font-bold text-center">Séries</label>
-                    <input className="w-full bg-input-dark border border-border-dark rounded text-center text-white font-mono text-lg font-bold py-2 chiseled-input" type="number" defaultValue={ex.sets} />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] uppercase tracking-wider text-gray-500 font-bold text-center">Reps</label>
-                    <input className="w-full bg-input-dark border border-border-dark rounded text-center text-white font-mono text-lg font-bold py-2 chiseled-input" type="text" defaultValue={ex.reps} />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] uppercase tracking-wider text-gray-500 font-bold text-center">Kg</label>
-                    <input className="w-full bg-input-dark border border-border-dark rounded text-center text-primary font-mono text-lg font-bold py-2 chiseled-input" type="number" defaultValue="60" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] uppercase tracking-wider text-gray-500 font-bold text-center">Desc.</label>
-                    <input className="w-full bg-input-dark border border-border-dark rounded text-center text-gray-400 font-mono text-lg font-bold py-2 chiseled-input" type="number" defaultValue="90" />
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </main>
-
-      <footer className="absolute bottom-0 w-full bg-[#171512]/95 backdrop-blur-md border-t border-border-dark p-4 z-50">
-        <div className="flex flex-col gap-3">
-          <button className="w-full flex items-center justify-center gap-2 bg-transparent border border-gray-600 hover:border-white hover:text-white text-gray-400 py-3.5 rounded-lg text-sm font-bold uppercase tracking-wider transition-all">
-            <span className="material-symbols-outlined text-lg">tune</span>Ajustar Manualmente
-          </button>
-          <button 
-            onClick={() => navigate('/dashboard')} 
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary-dark hover:brightness-110 text-black py-4 rounded-lg text-base font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(213,159,57,0.3)] transition-all transform active:scale-[0.98]"
-          >
-            <span className="material-symbols-outlined text-xl">verified</span>Aprovar Treino
-          </button>
-        </div>
-      </footer>
-    </div>
-  );
+/** Um set editável no formulário (espelha TrainingSetDTO para exibição + submit) */
+type EditableSet = {
+  id: string | null;
+  exerciseId: string;
+  exerciseName: string;
+  dayLetter: string;
+  exerciseOrder: number;
+  sets: number;
+  reps: string;
+  restSeconds: number;
+  loadPrescription: string;
+  technique: string;
+  notes: string;
 };
 
-export default InstructorReview;
+function toEditableSet(s: TrainingSetDTO): EditableSet {
+  return {
+    id: typeof s.id === "string" ? s.id : s.id != null ? String(s.id) : null,
+    exerciseId: s.exerciseId ?? "",
+    exerciseName: s.exerciseName ?? "",
+    dayLetter: s.dayLetter ?? "",
+    exerciseOrder: s.exerciseOrder ?? 0,
+    sets: s.sets ?? 0,
+    reps: s.reps ?? "",
+    restSeconds: s.restSeconds ?? 90,
+    loadPrescription: s.loadPrescription ?? "",
+    technique: s.technique ?? "",
+    notes: s.notes ?? "",
+  };
+}
+
+function toUpdateSet(s: EditableSet): UpdateTrainingSetDTO {
+  return {
+    id: s.id,
+    exerciseId: s.exerciseId,
+    dayLetter: s.dayLetter,
+    exerciseOrder: s.exerciseOrder,
+    sets: s.sets,
+    reps: s.reps,
+    restSeconds: s.restSeconds,
+    loadPrescription: s.loadPrescription,
+    technique: s.technique,
+    notes: s.notes,
+  };
+}
+
+export default function InstructorReview() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const state = (location.state as LocationState) ?? null;
+  const trainingId = state?.trainingId ?? null;
+  const training = state?.training ?? null;
+
+  const initialEditableSets = useMemo(
+    () => (training?.sets ?? []).map(toEditableSet),
+    [training?.id]
+  );
+  const [editableSets, setEditableSets] = useState<EditableSet[]>(initialEditableSets);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setEditableSets((training?.sets ?? []).map(toEditableSet));
+  }, [training?.id]);
+
+  const updateSet = (index: number, field: keyof EditableSet, value: string | number) => {
+    setEditableSets((prev) => {
+      const next = [...prev];
+      if (!next[index]) return prev;
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  };
+
+  const handleSaveManual = async () => {
+    if (!trainingId || editableSets.length === 0) {
+      toast.info("Nenhuma alteração ou treino sem exercícios.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = { sets: editableSets.map(toUpdateSet) };
+      const updated = await trainingService.updateTraining(trainingId, payload);
+      setEditableSets((updated.sets ?? []).map(toEditableSet));
+      toast.success("Treino salvo com sucesso.");
+    } catch (e: unknown) {
+      const msg = e && typeof e === "object" && "message" in e ? String((e as { message: unknown }).message) : "Erro ao salvar.";
+      toast.error(msg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("@sparta:user");
+    localStorage.removeItem("@sparta:token");
+    navigate("/login", { replace: true });
+    window.location.reload();
+  };
+
+  const isAdmin = (() => {
+    try {
+      const u = localStorage.getItem("@sparta:user");
+      return u ? JSON.parse(u).role === "ADMIN" : false;
+    } catch { return false; }
+  })();
+
+  if (!trainingId || !training) {
+    return (
+      <div className="min-h-screen min-h-[100dvh] bg-page-dark">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <PageHeader
+            title="Revisão de treino"
+            subtitle="Treino não encontrado"
+            leftSlot={
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/dashboard/professional/solicitacoes")}
+                className="size-10 sm:size-11 min-h-[44px] min-w-[44px] text-white/70 hover:text-white touch-manipulation rounded-lg shrink-0"
+                aria-label="Voltar"
+              >
+                <ArrowLeft className="size-5 sm:size-6" />
+              </Button>
+            }
+          />
+          <div className="glass-card-3d rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center">
+            <p className="text-white/80 mb-4">Selecione um treino na página de Solicitações para revisar.</p>
+            <Button
+              variant="default"
+              onClick={() => navigate("/dashboard/professional/solicitacoes")}
+              className="min-h-[44px]"
+            >
+              Ir para Solicitações
+          </Button>
+        </div>
+        </div>
+      </div>
+    );
+  }
+
+  const initials = training.userName?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() ?? "?";
+  const sets = editableSets;
+
+  return (
+    <div className="min-h-screen min-h-[100dvh] bg-page-dark">
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <PageHeader
+          title="Revisão de treino"
+          subtitle={training.userName}
+          leftSlot={
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/dashboard/professional/solicitacoes")}
+              className="size-10 sm:size-11 min-h-[44px] min-w-[44px] text-white/70 hover:text-white touch-manipulation rounded-lg shrink-0"
+              aria-label="Voltar às solicitações"
+            >
+              <ArrowLeft className="size-5 sm:size-6" />
+            </Button>
+          }
+          rightSlot={
+            <div className="flex items-center gap-1">
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/dashboard/admin")}
+                  className="text-[11px] text-white/40 hover:text-white/60 mr-2"
+                  title="Voltar ao painel Admin"
+                >
+                  ← Admin
+                </button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="size-10 sm:size-11 min-h-[44px] min-w-[44px] text-white/60 hover:text-white touch-manipulation rounded-lg"
+                title="Sair"
+              >
+                <LogOut className="size-5 sm:size-6" />
+              </Button>
+            </div>
+          }
+        />
+
+        <main className="pb-28">
+          {/* Card do aluno */}
+          <section className="mb-6">
+            <div className="glass-card-3d rounded-xl sm:rounded-2xl p-4 sm:p-5 flex items-center gap-4">
+              <div className="bg-white/[0.08] rounded-full size-12 sm:size-14 flex items-center justify-center shrink-0">
+                <span className="text-sm font-semibold text-primary/80">{initials}</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-semibold text-white/95 truncate">{training.userName}</h2>
+                <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] sm:text-xs text-white/50">
+                  <span>Nível: {training.level}</span>
+                  <span>•</span>
+                  <span>Foco: {training.focus}</span>
+                  <span>•</span>
+                  <span>{training.daysPerWeek} dias/sem</span>
+                </div>
+                {training.limitations && (
+                  <p className="text-[11px] text-white/45 mt-1 line-clamp-2">{training.limitations}</p>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Lista de exercícios / sets */}
+          <section>
+            <h3 className="text-sm font-medium text-white/70 mb-3">Exercícios do treino</h3>
+            {sets.length === 0 ? (
+              <div className="glass-card-3d rounded-xl sm:rounded-2xl p-6 text-center">
+                <Sparkles className="size-10 text-white/30 mx-auto mb-2" />
+                <p className="text-sm text-white/60">Treino ainda sem exercícios (aguardando IA ou em draft).</p>
+                <p className="text-xs text-white/40 mt-1">Você pode aprovar para ativar ou aguardar a geração pela IA.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {sets.map((set: EditableSet, idx: number) => (
+                  <div
+                    key={set.id ?? `e-${idx}`}
+                    className="glass-card-3d rounded-xl sm:rounded-2xl p-4 sm:p-5 border-l-4 border-primary/60"
+                  >
+                    <h4 className="font-medium text-white/90 text-sm sm:text-base mb-3 truncate">{set.exerciseName}</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-medium text-white/45">Séries</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={set.sets}
+                          onChange={(e) => updateSet(idx, "sets", e.target.value === "" ? 0 : Number(e.target.value))}
+                          className="h-9 sm:h-10 bg-white/[0.06] border-white/[0.08] text-white text-center font-mono"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-medium text-white/45">Reps</label>
+                        <Input
+                          type="text"
+                          value={set.reps}
+                          onChange={(e) => updateSet(idx, "reps", e.target.value)}
+                          className="h-9 sm:h-10 bg-white/[0.06] border-white/[0.08] text-white text-center font-mono"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-medium text-white/45">Desc. (s)</label>
+                        <Input
+                          type="number"
+                          min={0}
+                          value={set.restSeconds}
+                          onChange={(e) => updateSet(idx, "restSeconds", e.target.value === "" ? 0 : Number(e.target.value))}
+                          className="h-9 sm:h-10 bg-white/[0.06] border-white/[0.08] text-white text-center font-mono"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-medium text-white/45">Dia</label>
+                        <Input
+                          type="text"
+                          value={set.dayLetter}
+                          className="h-9 sm:h-10 bg-white/[0.06] border-white/[0.08] text-white text-center"
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </main>
+
+        {/* Ações fixas no rodapé */}
+        <footer className="fixed bottom-0 left-0 right-0 z-40 bg-page-dark/95 backdrop-blur border-t border-white/[0.06] p-4 safe-area-pb">
+          <div className="w-full max-w-5xl mx-auto flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex-1 min-h-[44px] text-white/70 hover:text-white hover:bg-white/[0.06] border border-white/[0.08]"
+              onClick={handleSaveManual}
+              disabled={saving}
+            >
+              {saving ? <Loader2 className="mr-2 size-4 shrink-0 animate-spin" /> : <Settings2 className="mr-2 size-4 shrink-0" />}
+              {saving ? "Salvando…" : "Ajustar manualmente"}
+            </Button>
+            <Button
+              variant="default"
+              className="flex-1 min-h-[44px] font-medium"
+              onClick={() => navigate("/dashboard/professional/solicitacoes")}
+              disabled={saving}
+            >
+              <ThumbsUp className="mr-2 size-4 shrink-0" />
+              Aprovar treino
+            </Button>
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
+}

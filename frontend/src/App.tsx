@@ -18,7 +18,9 @@ import { TrainingHistory } from "./ui/modules/student/TrainingHistory";
 
 // Profissional (Trainer) - Ajustado para o nome do arquivo na sua tree
 import { TrainerDashboard as ProfessionalDashboard } from "./ui/modules/professional/ProfessionalDashboard";
+import { ProfessionalSolicitacoes } from "./ui/modules/professional/ProfessionalSolicitacoes";
 import { ProfessionalStudents } from "./ui/modules/professional/ProfessionalStudents";
+import InstructorReview from "./ui/modules/professional/InstructorReview";
 
 // Admin
 import { AdminDashboard } from "./ui/modules/admin/AdminDashboard";
@@ -171,6 +173,14 @@ const App: React.FC = () => {
             }
           />
           <Route
+            path="/dashboard/professional/solicitacoes"
+            element={
+              <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+                <ProfessionalSolicitacoes />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/dashboard/professional/students"
             element={
               <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
@@ -183,6 +193,14 @@ const App: React.FC = () => {
             element={
               <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
                 <AIAssistant />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/trainer/edit-workout"
+            element={
+              <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+                <InstructorReview />
               </PrivateRoute>
             }
           />

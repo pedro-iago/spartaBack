@@ -67,6 +67,13 @@ public class TrainingController {
         return ResponseEntity.ok(trainings);
     }
 
+    /** Treinos pendentes com anamnese do aluno para o profissional avaliar. (Path em 2 segmentos para não conflitar com PUT /{id}) */
+    @GetMapping("/reviews/pending")
+    public ResponseEntity<List<PendingReviewDTO>> listPendingReviewsWithAnamnesis() {
+        var list = service.listPendingReviewsWithAnamnesis();
+        return ResponseEntity.ok(list);
+    }
+
     @PutMapping("/{id}")
     @Secured({"ROLE_PERSONAL", "ROLE_ADMIN"})
     public ResponseEntity<TrainingResponseDTO> updateTraining(

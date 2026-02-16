@@ -21,6 +21,10 @@ public interface TrainingRepository extends JpaRepository<Training, UUID> {
     @Query("SELECT t FROM Training t WHERE t.status = 'PENDING_REVIEW' ORDER BY t.createdAt ASC")
     List<Training> findPendingReview();
 
+    /** DRAFT = aluno pediu, aguardando IA; PENDING_REVIEW = IA respondeu, aguardando personal */
+    @Query("SELECT t FROM Training t WHERE t.status IN ('DRAFT', 'PENDING_REVIEW') ORDER BY t.createdAt ASC")
+    List<Training> findPendingReviewOrDraft();
+
     @Query("SELECT t FROM Training t LEFT JOIN FETCH t.sets WHERE t.id = :id")
     Optional<Training> findByIdWithSets(@Param("id") UUID id);
 

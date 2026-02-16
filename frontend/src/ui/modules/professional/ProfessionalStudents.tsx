@@ -20,6 +20,7 @@ import {
   Users,
   Search,
   FileText,
+  Clock,
   Sparkles,
   LogOut,
   Eye,
@@ -105,18 +106,10 @@ export function ProfessionalStudents() {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   const floatingNavItems: FloatingNavItem[] = [
-    { icon: <FileText />, label: "Revisões", onClick: () => navigate("/dashboard/professional") },
+    { icon: <FileText />, label: "Anamneses", onClick: () => navigate("/dashboard/professional") },
+    { icon: <Clock />, label: "Solicitações", onClick: () => navigate("/dashboard/professional/solicitacoes") },
     { icon: <Users />, label: "Meus Alunos", onClick: () => {} },
-    { icon: <Sparkles />, label: "IA Assistente", onClick: () => navigate("/assistant") },
-    {
-      icon: <LogOut />,
-      label: "Sair",
-      onClick: () => {
-        localStorage.removeItem("@sparta:user");
-        navigate("/login", { replace: true });
-        window.location.reload();
-      },
-    },
+    { icon: <Sparkles />, label: "Assistente", onClick: () => navigate("/assistant") },
   ];
 
   const filteredStudents = (() => {

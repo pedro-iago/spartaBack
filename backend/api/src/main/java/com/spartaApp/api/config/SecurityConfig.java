@@ -53,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
                         // 5. Rotas do Personal (ADMIN pode acessar como “página Personal”)
-                        .requestMatchers(HttpMethod.GET, "/trainings/pending").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/trainings/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/trainings/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/trainings/*/approve").authenticated()
 

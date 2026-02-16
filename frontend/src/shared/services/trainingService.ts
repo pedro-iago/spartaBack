@@ -1,5 +1,5 @@
 import { apiClient } from '../api/apiClient';
-import type { CreateTrainingDTO, TrainingResponseDTO } from '../types';
+import type { ApproveTrainingDTO, CreateTrainingDTO, PendingReviewDTO, TrainingResponseDTO, UpdateTrainingDTO } from '../types';
 
 export const trainingService = {
   /** POST /trainings/request - Solicita novo treino (aluno) */
@@ -22,5 +22,23 @@ export const trainingService = {
   getPendingTrainings: async (): Promise<TrainingResponseDTO[]> => {
     const { data } = await apiClient.get<TrainingResponseDTO[]>('/trainings/pending');
     return data ?? [];
+  },
+
+  /** GET /trainings/reviews/pending - Treinos pendentes com anamnese do aluno para avaliar */
+  getPendingReviewsWithAnamnesis: async (): Promise<PendingReviewDTO[]> => {
+    const { data } = await apiClient.get<PendingReviewDTO[]>('/trainings/reviews/pending');
+    return data ?? [];
+  },
+
+  /** PUT /trainings/{id} - Atualiza treino (personal revisa sets) */
+  updateTraining: async (trainingId: string, payload: UpdateTrainingDTO): Promise<TrainingResponseDTO> => {
+    const { data } = await apiClient.put<TrainingResponseDTO>(`/trainings/${trainingId}`, payload);
+    return data;
+  },
+
+  /** POST /trainings/{id}/approve - Aprova ou rejeita treino */
+  approveTraining: async (trainingId: string, payload: ApproveTrainingDTO): Promise<TrainingResponseDTO> => {
+    const { data } = await apiClient.post<TrainingResponseDTO>(`/trainings/${trainingId}/approve`, payload);
+    return data;
   },
 };

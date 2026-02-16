@@ -1,39 +1,32 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/ui/components/ui/button";
-import { Input } from "@/ui/components/ui/input";
 import { PageHeader } from "@/ui/components/ui/page-header";
 import { FloatingNav, type FloatingNavItem } from "@/ui/components/ui/floating-nav";
 import {
   Users,
-  Search,
   CheckCircle,
   Clock,
   FileText,
   Eye,
-  ThumbsUp,
   Sparkles,
   LogOut,
-  List,
-  LayoutGrid,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { trainingService } from "@/shared/services/trainingService";
-import type { TrainingResponseDTO } from "@/shared/types";
+import type { PendingReviewDTO } from "@/shared/types";
 
 export function TrainerDashboard() {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<"all" | "draft" | "pending" | "active">("all");
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const [trainings, setTrainings] = useState<TrainingResponseDTO[]>([]);
+  const [reviews, setReviews] = useState<PendingReviewDTO[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       try {
-        const list = await trainingService.getPendingTrainings();
-        setTrainings(list);
+        const list = await trainingService.getPendingReviewsWithAnamnesis();
+        setReviews(list);
       } catch {
-        setTrainings([]);
+        setReviews([]);
       } finally {
         setLoading(false);
       }
@@ -53,36 +46,19 @@ export function TrainerDashboard() {
     } catch { return false; }
   })();
 
+  const scrollTo = (id: string) => () => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   const floatingNavItems: FloatingNavItem[] = [
-    { icon: <FileText />, label: "Revisões", onClick: () => {} },
+    { icon: <FileText />, label: "Anamneses", onClick: scrollTo("section-anamneses") },
+    { icon: <Clock />, label: "Solicitações", onClick: () => navigate("/dashboard/professional/solicitacoes") },
     { icon: <Users />, label: "Meus Alunos", onClick: () => navigate("/dashboard/professional/students") },
-    { icon: <Sparkles />, label: "IA Assistente", onClick: () => navigate("/assistant") },
-    { icon: <LogOut />, label: "Sair", onClick: handleLogout },
+    { icon: <Sparkles />, label: "Assistente", onClick: () => navigate("/assistant") },
   ];
 
-  const mapStatus = (s: string): "draft" | "pending" | "active" => {
-    if (s === "ACTIVE") return "active";
-    if (s === "PENDING_APPROVAL") return "pending";
-    return "draft";
-  };
-
   const stats = {
-    totalStudents: trainings.length,
-    pendingReviews: trainings.filter((t) => t.status === "PENDING_APPROVAL" || t.status === "DRAFT").length,
-    activeWorkouts: trainings.filter((t) => t.status === "ACTIVE").length,
+    totalStudents: reviews.length,
+    pendingReviews: reviews.filter((r) => r.training.status === "PENDING_REVIEW" || r.training.status === "DRAFT").length,
+    activeWorkouts: reviews.filter((r) => r.training.status === "ACTIVE").length,
   };
-
-  const getStatusLabel = (status: string) => {
-    const s = mapStatus(status);
-    if (s === "draft") return <span className="text-[11px] font-medium text-white/45">Draft</span>;
-    if (s === "pending") return <span className="text-[11px] font-medium text-primary/80">Pendente</span>;
-    if (s === "active") return <span className="text-[11px] font-medium text-primary/80">Ativo</span>;
-    return null;
-  };
-
-  const filteredReviews = filter === "all"
-    ? trainings
-    : trainings.filter((t) => mapStatus(t.status) === filter);
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-page-dark">
@@ -116,8 +92,8 @@ export function TrainerDashboard() {
         />
 
         <div className="py-5 sm:py-6 lg:py-8 pb-24">
-          {/* Cards de estatísticas — em mobile 3 colunas compactas, em desktop 3 colunas confortáveis */}
-          <section className="grid grid-cols-3 gap-2 sm:gap-4 mb-5 sm:mb-8" aria-label="Resumo">
+          {/* Resumo (estatísticas) */}
+          <section className="grid grid-cols-3 gap-2 sm:gap-4 mb-8 sm:mb-10" aria-label="Resumo">
             <div className="glass-card-3d rounded-xl sm:rounded-2xl p-3 sm:p-5">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
                 <div className="min-w-0">
@@ -153,135 +129,64 @@ export function TrainerDashboard() {
             </div>
           </section>
 
-          {/* Busca e filtros */}
-          <section className="mb-4 sm:mb-6" aria-label="Filtrar revisões">
-            <div className="glass-card-3d rounded-xl sm:rounded-2xl p-3 sm:p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <div className="flex-1 w-full min-w-0 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-white/45 pointer-events-none" />
-                <Input
-                  placeholder="Buscar aluno ou treino..."
-                  className="w-full pl-9 sm:pl-10 min-h-[44px] sm:min-h-0 h-10 bg-white/[0.06] border-white/[0.08] text-white placeholder:text-white/40 rounded-xl text-sm"
-                />
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {(["all", "draft", "pending", "active"] as const).map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setFilter(f)}
-                    className={`px-2.5 sm:px-3 py-2 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-lg text-[11px] sm:text-xs font-medium transition-colors shrink-0 touch-manipulation ${
-                      filter === f
-                        ? "bg-primary/80 text-primary-foreground"
-                        : "bg-white/[0.06] text-white/60 hover:text-white/80 border border-white/[0.06]"
-                    }`}
-                  >
-                    {f === "all" ? "Todos" : f === "draft" ? "Draft" : f === "pending" ? "Pendentes" : "Ativos"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Lista de revisões */}
-          <section aria-label="Revisões para aprovar">
-            <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
-              <h2 className="text-xs sm:text-sm font-medium text-white/70">
-                Revisões <span className="text-white/50 font-normal">({filteredReviews.length})</span>
-              </h2>
-              <div className="glass-card-3d rounded-xl p-0.5 flex" role="group" aria-label="Visualização">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center transition-colors touch-manipulation ${
-                    viewMode === "list"
-                      ? "bg-primary/80 text-primary-foreground"
-                      : "text-white/50 hover:text-white/80 hover:bg-white/[0.06]"
-                  }`}
-                  title="Lista"
-                  aria-pressed={viewMode === "list"}
-                >
-                  <List className="size-4 sm:size-4.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center transition-colors touch-manipulation ${
-                    viewMode === "grid"
-                      ? "bg-primary/80 text-primary-foreground"
-                      : "text-white/50 hover:text-white/80 hover:bg-white/[0.06]"
-                  }`}
-                  title="Quadros"
-                  aria-pressed={viewMode === "grid"}
-                >
-                  <LayoutGrid className="size-4 sm:size-4.5" />
-                </button>
-              </div>
-            </div>
-            <div
-              className={
-                viewMode === "list"
-                  ? "space-y-2 sm:space-y-3"
-                  : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3"
-              }
-            >
-              {loading ? (
-                <div className="col-span-full text-center text-white/50 py-8">Carregando...</div>
-              ) : (
-                filteredReviews.map((review) => {
-                  const initials = review.userName?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() ?? "?";
-                  const created = review.createdAt ? new Date(review.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "";
-                  return (
-                    <div
-                      key={review.id}
-                      className="glass-card-3d rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col h-full"
-                    >
-                      <div className="flex flex-col gap-3 sm:gap-0 sm:flex-row sm:items-start sm:justify-between flex-shrink-0">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="bg-white/[0.08] rounded-full size-9 sm:size-10 flex items-center justify-center shrink-0">
-                            <span className="text-xs sm:text-sm font-semibold text-primary/80">{initials}</span>
+          {/* ——— 1. ANAMNESES (só anamnese, sem treino) ——— */}
+          <section id="section-anamneses" className="mb-10 sm:mb-12" aria-label="Anamneses para avaliar">
+            <h2 className="text-base sm:text-lg font-semibold text-white/95 flex items-center gap-2 mb-1">
+              <FileText className="size-5 text-primary/70 shrink-0" />
+              Anamneses para avaliar
+            </h2>
+            <p className="text-xs sm:text-sm text-white/50 mb-4">Dados de saúde e objetivo dos alunos.</p>
+            {loading ? (
+              <div className="text-center text-white/50 py-8">Carregando...</div>
+            ) : (
+              <div className="space-y-3 sm:space-y-4">
+                {reviews.filter((r) => r.anamnesis != null).length === 0 ? (
+                  <div className="glass-card-3d rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center">
+                    <FileText className="size-10 text-white/30 mx-auto mb-2" />
+                    <p className="text-sm text-white/70">Nenhuma anamnese pendente</p>
+                  </div>
+                ) : (
+                  reviews
+                    .filter((r) => r.anamnesis != null)
+                    .map((item) => {
+                      const t = item.training;
+                      const a = item.anamnesis!;
+                      const initials = t.userName?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() ?? "?";
+                      return (
+                        <div key={`anam-${t.id}`} className="glass-card-3d rounded-xl sm:rounded-2xl p-4 sm:p-5">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="bg-white/[0.08] rounded-full size-9 flex items-center justify-center shrink-0">
+                              <span className="text-xs font-semibold text-primary/80">{initials}</span>
+                            </div>
+                            <div>
+                              <h3 className="font-medium text-white/95 text-sm">{t.userName}</h3>
+                              <p className="text-[11px] text-white/45">Anamnese</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="ml-auto text-xs"
+                              onClick={() => document.getElementById("section-solicitacoes")?.scrollIntoView({ behavior: "smooth" })}
+                            >
+                              Ver solicitação
+                            </Button>
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-medium text-white/95 truncate text-sm sm:text-base">{review.userName}</h3>
-                            <p className="text-[10px] sm:text-[11px] text-white/45">{created}</p>
-                          </div>
+                          <ul className="text-[11px] sm:text-xs text-white/60 space-y-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                            {a.goal && <li><span className="text-white/45">Objetivo:</span> {a.goal}</li>}
+                            {a.age != null && <li><span className="text-white/45">Idade:</span> {a.age} anos</li>}
+                            {a.weight != null && <li><span className="text-white/45">Peso:</span> {a.weight} kg</li>}
+                            {a.height != null && <li><span className="text-white/45">Altura:</span> {a.height} m</li>}
+                            {a.activityLevel && <li><span className="text-white/45">Atividade:</span> {a.activityLevel}</li>}
+                            {a.daysPerWeekAvailable != null && <li><span className="text-white/45">Dias/semana:</span> {a.daysPerWeekAvailable}</li>}
+                            {a.injuries && <li className="sm:col-span-2"><span className="text-white/45">Lesões:</span> {a.injuries}</li>}
+                            {a.medicalConditions && <li className="sm:col-span-2"><span className="text-white/45">Condições médicas:</span> {a.medicalConditions}</li>}
+                          </ul>
                         </div>
-                        <div className="flex items-center justify-between sm:justify-end gap-2">
-                          {getStatusLabel(review.status)}
-                        </div>
-                      </div>
-                      <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.06] flex-1 min-h-0">
-                        <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                          <Sparkles className="size-3.5 text-primary/60 shrink-0" />
-                          <h4 className="font-medium text-white/90 text-xs sm:text-sm truncate">Treino {review.focus}</h4>
-                          <span className="text-[10px] font-medium text-white/45">IA</span>
-                        </div>
-                        <p className="text-[11px] sm:text-xs text-white/55 line-clamp-2">{review.limitations || "Sem observações"}</p>
-                      </div>
-                      <div className="mt-3 flex flex-row gap-2 flex-shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex-1 text-white/70 hover:text-white hover:bg-white/[0.06] min-h-[44px] sm:min-h-8 h-auto py-2 text-xs sm:text-sm touch-manipulation"
-                          onClick={() => navigate("/trainer/edit-workout", { state: { trainingId: review.id } })}
-                        >
-                          <Eye className="mr-2 size-3.5 shrink-0" />
-                          Revisar
-                        </Button>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="flex-1 rounded-xl font-medium min-h-[44px] sm:min-h-8 h-auto py-2 text-xs sm:text-sm touch-manipulation"
-                          onClick={() => navigate("/trainer/edit-workout", { state: { trainingId: review.id } })}
-                        >
-                          <ThumbsUp className="mr-2 size-3.5 shrink-0" />
-                          Aprovar
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                      );
+                    })
+                )}
+              </div>
+            )}
           </section>
         </div>
       </div>

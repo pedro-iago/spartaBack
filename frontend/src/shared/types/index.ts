@@ -191,8 +191,53 @@ export interface TrainingResponseDTO {
     focus: string;
     daysPerWeek: number;
     limitations: string;
-    status: string; // DRAFT, PENDING_APPROVAL, ACTIVE, COMPLETED, ARCHIVED
+    status: string; // DRAFT, PENDING_REVIEW, ACTIVE, COMPLETED, ARCHIVED
     sets: TrainingSetDTO[];
     createdAt: string;
     updatedAt: string;
+}
+
+/** Resumo da anamnese para o profissional avaliar no dashboard. */
+export interface AnamnesisSummaryDTO {
+    id: string;
+    weight: number | null;
+    height: number | null;
+    age: number | null;
+    gender: string | null;
+    goal: string;
+    activityLevel: string | null;
+    daysPerWeekAvailable: number | null;
+    injuries: string | null;
+    medicalConditions: string | null;
+    createdAt: string;
+}
+
+/** Item de revisão pendente: treino + anamnese do aluno. */
+export interface PendingReviewDTO {
+    training: TrainingResponseDTO;
+    anamnesis: AnamnesisSummaryDTO | null;
+}
+
+/** Payload para PUT /trainings/{id} (atualizar sets do treino) */
+export interface UpdateTrainingSetDTO {
+    id: string | null;
+    exerciseId: string;
+    dayLetter: string;
+    exerciseOrder: number;
+    sets: number;
+    reps: string;
+    restSeconds: number;
+    loadPrescription: string;
+    technique: string;
+    notes: string;
+}
+
+export interface UpdateTrainingDTO {
+    sets: UpdateTrainingSetDTO[];
+}
+
+/** Payload para POST /trainings/{id}/approve */
+export interface ApproveTrainingDTO {
+    approved: boolean;
+    feedback?: string;
 }
