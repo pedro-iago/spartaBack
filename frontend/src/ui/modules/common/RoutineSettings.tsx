@@ -1,36 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/ui/components/ui/page-header";
-import { useNavigate } from 'react-router-dom';
-import { useSparta } from '../../../shared/context/SpartaContext';
-import { ExperienceLevel } from '../../../shared/types';
-import { trainingService } from '../../../shared/services/trainingService';
+import { Button } from "@/ui/components/ui/button";
+import { Card } from "@/ui/components/ui/card";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useSparta } from "@/shared/context/SpartaContext";
+import { ExperienceLevel } from "@/shared/types";
+import { trainingService } from "@/shared/services/trainingService";
 
 const RoutineSettings: React.FC = () => {
   const navigate = useNavigate();
-  const { user, updateUser } = useSparta(); 
+  const { user, updateUser } = useSparta();
   const [loading, setLoading] = useState(false);
-  // 🔥 NOVO: Estado local para limitações (já que não estava no user global ainda)
   const [limitations, setLimitations] = useState("");
 
   const handleGenerateProtocol = async () => {
     setLoading(true);
     try {
-      // Backend espera level: BEGINNER | INTERMEDIATE | ADVANCED; focus: HYPERTROPHY | STRENGTH | ENDURANCE
       const levelMap: Record<string, string> = {
-        [ExperienceLevel.BEGINNER]: 'BEGINNER',
-        [ExperienceLevel.INTERMEDIATE]: 'INTERMEDIATE',
-        [ExperienceLevel.ADVANCED]: 'ADVANCED',
+        [ExperienceLevel.BEGINNER]: "BEGINNER",
+        [ExperienceLevel.INTERMEDIATE]: "INTERMEDIATE",
+        [ExperienceLevel.ADVANCED]: "ADVANCED",
       };
       await trainingService.createRequest({
-          level: levelMap[user.level ?? ''] ?? 'BEGINNER',
-          focus: (user.goal as string) ?? 'HYPERTROPHY',
-          daysPerWeek: user.frequency ?? 3,
-          limitations: limitations || "Nenhuma"
+        level: levelMap[user.level ?? ""] ?? "BEGINNER",
+        focus: (user.goal as string) ?? "HYPERTROPHY",
+        daysPerWeek: user.frequency ?? 3,
+        limitations: limitations || "Nenhuma",
       });
-
       alert("Solicitação enviada! Seu personal irá analisar.");
-      // Depois de pedir, vai para o dashboard (que vai estar vazio ou com status 'Em análise')
-      navigate('/dashboard');
+      navigate("/dashboard/student");
     } catch (error) {
       console.error("Erro:", error);
       alert("Erro ao conectar com o servidor.");
@@ -41,97 +40,108 @@ const RoutineSettings: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="h-full w-full bg-background-dark flex flex-col items-center justify-center p-8 text-center text-white">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary mb-4"></div>
-        <h2 className="text-xl font-bold uppercase">Enviando ao Personal...</h2>
+      <div className="min-h-screen min-h-[100dvh] bg-page-dark flex flex-col items-center justify-center p-8 text-center text-white">
+        <Loader2 className="size-12 animate-spin text-primary mb-4" />
+        <p className="text-sm font-medium text-white/80">Enviando ao personal...</p>
       </div>
     );
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col bg-background-dark text-white">
-      <div className="sticky top-0 z-20 p-4 max-w-4xl mx-auto w-full">
+    <div className="min-h-screen min-h-[100dvh] bg-page-dark flex flex-col text-white">
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <PageHeader
           title="Anamnese"
+          subtitle="Dias por semana, nível e limitações"
           leftSlot={
-            <button onClick={() => navigate(-1)} className="text-white flex items-center justify-center size-10 rounded-full hover:bg-white/5 transition-colors" aria-label="Voltar">
-              <span className="material-symbols-outlined text-[24px]">arrow_back</span>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="flex min-w-[44px] min-h-[44px] size-11 shrink-0 items-center justify-center rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors touch-manipulation"
+              aria-label="Voltar"
+            >
+              <ArrowLeft className="size-5 sm:size-6" />
             </button>
           }
         />
       </div>
-      
-      <main className="flex-1 overflow-y-auto pb-24 p-6 space-y-8">
-        
-        {/* Frequência */}
-        <div>
-          <h1 className="text-xl font-bold uppercase mb-2">Dias por Semana</h1>
-          <p className="text-white/50 text-sm mb-4">Quantos dias você tem disponível?</p>
-          <div className="grid grid-cols-6 gap-2">
-            {[2,3,4,5,6,7].map(num => (
-              <label key={num} className="cursor-pointer group relative">
-                <input 
-                  type="radio" 
-                  name="days" 
-                  className="peer sr-only"
-                  checked={user.frequency === num}
-                  onChange={() => updateUser({ frequency: num })}
-                />
-                <div className="h-14 rounded bg-surface-dark border border-white/10 peer-checked:border-primary peer-checked:text-primary flex items-center justify-center font-bold text-lg">
-                  {num}
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
 
-        {/* Nível */}
-        <div>
-          <h2 className="text-xl font-bold uppercase mb-4">Nível de Experiência</h2>
-          <div className="flex flex-col gap-3">
-            {[
-              { id: ExperienceLevel.BEGINNER, label: 'Iniciante', icon: 'stat_minus_1', desc: 'Nunca treinei ou parei há muito tempo' },
-              { id: ExperienceLevel.INTERMEDIATE, label: 'Intermediário', icon: 'equal', desc: 'Treino regularmente há 6 meses+' },
-              { id: ExperienceLevel.ADVANCED, label: 'Avançado', icon: 'stat_1', desc: 'Atleta ou treino intenso há anos' }
-            ].map(level => (
-              <label key={level.id} className="cursor-pointer relative">
-                <input 
-                  type="radio" 
-                  name="level" 
-                  className="peer sr-only"
-                  checked={user.level === level.id}
-                  onChange={() => updateUser({ level: level.id })}
-                />
-                <div className="p-4 rounded bg-surface-dark border border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 flex items-center gap-4 transition-all">
-                  <span className="material-symbols-outlined text-white/50">{level.icon}</span>
-                  <div className="flex flex-col">
-                      <span className="font-bold uppercase text-sm">{level.label}</span>
-                      <span className="text-xs text-white/40">{level.desc}</span>
+      <main className="flex-1 overflow-y-auto pb-28 pt-2">
+        <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 lg:space-y-8">
+          {/* Frequência */}
+          <Card variant="glass" className="rounded-2xl border border-white/10 p-4 sm:p-5">
+            <h2 className="text-sm font-medium text-white/90 tracking-tight mb-1">Dias por semana</h2>
+            <p className="text-xs text-white/50 mb-4">Quantos dias você tem disponível?</p>
+            <div className="grid grid-cols-6 gap-2">
+              {[2, 3, 4, 5, 6, 7].map((num) => (
+                <label key={num} className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="days"
+                    className="peer sr-only"
+                    checked={user.frequency === num}
+                    onChange={() => updateUser({ frequency: num })}
+                  />
+                  <div className="h-14 rounded-xl bg-white/[0.06] border border-white/10 peer-checked:border-primary peer-checked:bg-primary/10 flex items-center justify-center font-semibold text-lg text-white/90 peer-checked:text-primary transition-all">
+                    {num}
                   </div>
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
+                </label>
+              ))}
+            </div>
+          </Card>
 
-        {/* 🔥 NOVO CAMPO: Limitações (Crucial para a IA) */}
-        <div>
-            <h2 className="text-xl font-bold uppercase mb-2">Histórico de Lesões</h2>
-            <p className="text-white/50 text-sm mb-2">Possui alguma limitação, dor ou cirurgia?</p>
-            <textarea 
-                className="w-full bg-surface-dark border border-white/10 rounded-lg p-3 text-white text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none min-h-[100px]"
-                placeholder="Ex: Tenho condromalácia no joelho esquerdo, dor no ombro..."
-                value={limitations}
-                onChange={(e) => setLimitations(e.target.value)}
+          {/* Nível */}
+          <Card variant="glass" className="rounded-2xl border border-white/10 p-4 sm:p-5">
+            <h2 className="text-sm font-medium text-white/90 tracking-tight mb-4">Nível de experiência</h2>
+            <div className="flex flex-col gap-3">
+              {[
+                { id: ExperienceLevel.BEGINNER, label: "Iniciante", desc: "Nunca treinei ou parei há muito tempo" },
+                { id: ExperienceLevel.INTERMEDIATE, label: "Intermediário", desc: "Treino regularmente há 6 meses+" },
+                { id: ExperienceLevel.ADVANCED, label: "Avançado", desc: "Atleta ou treino intenso há anos" },
+              ].map((level) => (
+                <label key={level.id} className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="level"
+                    className="peer sr-only"
+                    checked={user.level === level.id}
+                    onChange={() => updateUser({ level: level.id })}
+                  />
+                  <div className="p-4 rounded-xl bg-white/[0.04] border border-white/10 peer-checked:border-primary peer-checked:bg-primary/5 flex items-center gap-4 transition-all">
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium text-sm text-white/90 block">{level.label}</span>
+                      <span className="text-xs text-white/50">{level.desc}</span>
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </Card>
+
+          {/* Limitações */}
+          <Card variant="glass" className="rounded-2xl border border-white/10 p-4 sm:p-5">
+            <h2 className="text-sm font-medium text-white/90 tracking-tight mb-1">Histórico de lesões</h2>
+            <p className="text-xs text-white/50 mb-3">Possui alguma limitação, dor ou cirurgia?</p>
+            <textarea
+              className="w-full rounded-xl bg-white/[0.06] border border-white/10 p-3 text-white text-sm placeholder:text-white/30 focus:border-primary focus:ring-1 focus:ring-primary outline-none min-h-[100px]"
+              placeholder="Ex: Tenho condromalácia no joelho esquerdo, dor no ombro..."
+              value={limitations}
+              onChange={(e) => setLimitations(e.target.value)}
             />
+          </Card>
         </div>
-
       </main>
 
-      <div className="fixed bottom-0 w-full p-6 bg-background-dark border-t border-white/5">
-        <button onClick={handleGenerateProtocol} className="w-full bg-primary text-black font-bold uppercase py-4 rounded-lg">
-          Enviar para Análise
-        </button>
+      <div className="fixed bottom-0 left-0 right-0 p-4 sm:p-6 bg-page-dark border-t border-white/5">
+        <div className="w-full max-w-4xl mx-auto">
+          <Button
+            size="lg"
+            className="w-full rounded-xl font-semibold uppercase min-h-12"
+            onClick={handleGenerateProtocol}
+          >
+            Enviar para análise
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -28,6 +28,8 @@ import { AdminSettings } from "./ui/modules/admin/AdminSettings";
 
 // Common (multi-role)
 import { AIAssistant } from "./ui/modules/common/AIAssistant";
+import GoalSelection from "./ui/modules/common/GoalSelection";
+import RoutineSettings from "./ui/modules/common/RoutineSettings";
 
 /** Roles que podem acessar a rota. ADMIN pode acessar todas as áreas (admin, aluno, personal). */
 const PrivateRoute = ({
@@ -139,6 +141,22 @@ const App: React.FC = () => {
             element={
               <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <StudentProfile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/goal"
+            element={
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
+                <GoalSelection />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/routine"
+            element={
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
+                <RoutineSettings />
               </PrivateRoute>
             }
           />

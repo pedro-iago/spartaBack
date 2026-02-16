@@ -177,6 +177,30 @@ export function StudentDashboard() {
           </div>
         </Card>
 
+        {/* Anamnese / Pedir treino — endpoint POST /trainings/request */}
+        <Card variant="glass" className="rounded-2xl border border-white/10 p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <h3 className="text-sm font-medium text-white/90 tracking-tight">
+              Anamnese / Pedir treino
+            </h3>
+            <ArrowUpRight className="size-4 text-white/40 shrink-0" />
+          </div>
+          <p className="text-xs text-white/50 mb-3">
+            Defina objetivo, dias por semana e limitações. Envia para análise do personal.
+          </p>
+          <p className="text-[10px] text-white/40 font-mono mb-3">
+            POST /trainings/request
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full border-white/20 text-white/80 hover:bg-white/10"
+            onClick={() => navigate("/goal")}
+          >
+            Ir para Anamnese
+          </Button>
+        </Card>
+
         {/* Dieta de Hoje */}
         <div className="glass-card-3d rounded-2xl p-4 sm:p-5">
           <div className="flex items-start justify-between gap-3 mb-3">

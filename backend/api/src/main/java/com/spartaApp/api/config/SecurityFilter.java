@@ -29,6 +29,9 @@ public class SecurityFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String token = recoverTokenFromCookie(request);
+        if (token == null) {
+            token = recoverTokenFromHeader(request);
+        }
 
         if (token != null) {
             String login = tokenService.validateToken(token);
@@ -56,6 +59,15 @@ public class SecurityFilter extends OncePerRequestFilter {
                     return cookie.getValue();
                 }
             }
+        }
+        return null;
+    }
+
+    /** Frontend envia token em Authorization: Bearer <token> (localStorage). */
+    private String recoverTokenFromHeader(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
         }
         return null;
     }
