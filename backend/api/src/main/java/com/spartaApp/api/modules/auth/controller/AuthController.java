@@ -4,10 +4,12 @@ import com.spartaApp.api.modules.auth.dto.LoginDTO;
 import com.spartaApp.api.modules.auth.dto.RegisterDTO;
 import com.spartaApp.api.modules.auth.service.AuthService;
 import com.spartaApp.api.modules.auth.service.TokenService;
+import com.spartaApp.api.modules.auth.domain.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -69,5 +71,15 @@ public class AuthController {
         }
     }
 
+    /** Teste de autenticação: retorna dados do usuário logado (qualquer role). Útil para validar se o token está sendo aceito. */
+    @GetMapping("/me")
+    public ResponseEntity<AuthMeResponse> me(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(new AuthMeResponse(user.getEmail(), user.getName(), user.getRole().toString()));
+    }
+
     record AuthResponse(String name, String role, String token) {}
+    record AuthMeResponse(String email, String name, String role) {}
 }

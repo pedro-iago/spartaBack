@@ -7,6 +7,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +19,8 @@ import java.io.IOException;
 
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(SecurityFilter.class);
 
     @Autowired
     private TokenService tokenService;
@@ -29,23 +33,30 @@ public class SecurityFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String token = recoverTokenFromCookie(request);
+        String source = token != null ? "cookie" : null;
         if (token == null) {
             token = recoverTokenFromHeader(request);
+            source = token != null ? "header" : null;
         }
 
         if (token != null) {
+            log.info("Token recebido (origin: {}), validando...", source);
             String login = tokenService.validateToken(token);
-
             if (login != null) {
                 var user = userRepository.findByEmail(login).orElse(null);
-
-                if (user != null) {
-                    // --- CORREÇÃO AQUI ---
-                    // Usa user.getAuthorities() para pegar a hierarquia (Admin > Personal > User)
-                    var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-
+                if (user != null && Boolean.TRUE.equals(user.getActive())) {
+                    var authorities = user.getAuthorities();
+                    var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                    log.info("Auth OK ({}): {} roles={}", source, login,
+                            authorities.stream().map(org.springframework.security.core.GrantedAuthority::getAuthority).toList());
+                } else if (user == null) {
+                    log.warn("Token válido mas usuário não encontrado: {}", login);
+                } else if (!Boolean.TRUE.equals(user.getActive())) {
+                    log.warn("Usuário inativo: {}", login);
                 }
+            } else {
+                log.warn("Token inválido ou expirado (origin: {})", source);
             }
         }
         filterChain.doFilter(request, response);

@@ -62,14 +62,13 @@ public class TrainingController {
     // ❌ REMOVIDO endpoint /sets/{setId}/complete
 
     @GetMapping("/pending")
-    @Secured("ROLE_PERSONAL")
     public ResponseEntity<List<TrainingResponseDTO>> listPendingTrainings() {
         var trainings = service.listPendingTrainings();
         return ResponseEntity.ok(trainings);
     }
 
     @PutMapping("/{id}")
-    @Secured("ROLE_PERSONAL")
+    @Secured({"ROLE_PERSONAL", "ROLE_ADMIN"})
     public ResponseEntity<TrainingResponseDTO> updateTraining(
             @PathVariable UUID id,
             @RequestBody UpdateTrainingDTO data
@@ -83,7 +82,7 @@ public class TrainingController {
     }
 
     @PostMapping("/{id}/approve")
-    @Secured("ROLE_PERSONAL")
+    @Secured({"ROLE_PERSONAL", "ROLE_ADMIN"})
     public ResponseEntity<TrainingResponseDTO> approveTraining(
             @PathVariable UUID id,
             @RequestBody ApproveTrainingDTO data

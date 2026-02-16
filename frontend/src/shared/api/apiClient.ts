@@ -1,46 +1,39 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 
-// 1. Configuração da URL Base
-// Tenta ler do arquivo .env (Vite), se não achar, usa localhost:8080 como fallback
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || 'http://localhost:8080';
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: false,
 });
 
-// 2. Interceptor de Requisição (Envia o Token)
+// Interceptor de requisição: envia o token no header (backend aceita Authorization: Bearer)
 apiClient.interceptors.request.use(
-  (config: any) => { // Use 'any' ou InternalAxiosRequestConfig se for TS estrito
+  (config) => {
     const token = localStorage.getItem('@sparta:token');
-    
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // Log para debug (pode remover em produção)
-    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
-    
     return config;
   },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  }
+  (error: AxiosError) => Promise.reject(error)
 );
 
-// 3. Interceptor de Resposta (Trata erros globais)
+// Interceptor de resposta: em 401/403 limpa sessão e redireciona para login
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    // Se der erro de autorização (401) ou proibido (403)
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      console.error("Sessão expirada ou acesso negado. Redirecionando para login...");
-      
-      // Opcional: Forçar logout visual
-      // localStorage.removeItem('@sparta:token');
-      // window.location.href = '/login'; 
+    const status = error.response?.status;
+    if (status === 401 || status === 403) {
+      localStorage.removeItem('@sparta:token');
+      localStorage.removeItem('@sparta:user');
+      const path = window.location.hash?.replace('#', '') || window.location.pathname;
+      if (path !== '/login' && !path.startsWith('/login')) {
+        window.location.hash = '/login';
+      }
     }
     return Promise.reject(error);
   }

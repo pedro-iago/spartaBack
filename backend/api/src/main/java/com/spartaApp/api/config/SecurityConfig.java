@@ -14,7 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -37,6 +37,9 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Aplica a config de CORS abaixo
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 0. Preflight CORS (OPTIONS) sem token — precisa passar para o GET com Authorization funcionar
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // 1. Endpoints Públicos (Login e Registro)
                         .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/register").permitAll()
 
@@ -49,11 +52,16 @@ public class SecurityConfig {
                         // 4. Swagger / Docs (Opcional, bom deixar liberado em dev)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // 5. Todo o resto exige autenticação
+                        // 5. Rotas do Personal (ADMIN pode acessar como “página Personal”)
+                        .requestMatchers(HttpMethod.GET, "/trainings/pending").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/trainings/*").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/trainings/*/approve").authenticated()
+
+                        // 6. Todo o resto exige autenticação
                         .anyRequest().authenticated()
                 )
-                // Adiciona seu filtro de segurança (JWT) antes do filtro padrão do Spring
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+                // JWT antes da decisão de autorização (403); lê Authorization: Bearer
+                .addFilterBefore(securityFilter, AuthorizationFilter.class);
 
         return http.build();
     }
