@@ -123,6 +123,25 @@ export function AdminDashboard() {
           }
         />
         <div className="py-5 sm:py-6 lg:py-8 pb-24 space-y-6 lg:space-y-8">
+          {/* Porta de entrada: Admin pode acessar área Aluno e área Personal */}
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-white/20 text-white/90 hover:bg-white/10"
+              onClick={() => navigate("/dashboard/student")}
+            >
+              Ir para página Aluno
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-white/20 text-white/90 hover:bg-white/10"
+              onClick={() => navigate("/dashboard/professional")}
+            >
+              Ir para página Personal
+            </Button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="glass-card-3d rounded-2xl p-4 sm:p-5">
               <div className="flex items-center justify-between mb-1.5">

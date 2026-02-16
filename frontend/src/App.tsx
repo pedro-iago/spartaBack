@@ -29,22 +29,20 @@ import { AdminSettings } from "./ui/modules/admin/AdminSettings";
 // Common (multi-role)
 import { AIAssistant } from "./ui/modules/common/AIAssistant";
 
+/** Roles que podem acessar a rota. ADMIN pode acessar todas as áreas (admin, aluno, personal). */
 const PrivateRoute = ({
   children,
-  allowedRole,
+  allowedRoles,
 }: {
   children: JSX.Element;
-  allowedRole: string;
+  allowedRoles: string[];
 }) => {
   const userStr = localStorage.getItem("@sparta:user");
   if (!userStr) return <Navigate to="/login" replace />;
 
   const user = JSON.parse(userStr);
-  return user.role === allowedRole ? (
-    children
-  ) : (
-    <Navigate to="/login" replace />
-  );
+  const canAccess = allowedRoles.includes(user.role);
+  return canAccess ? children : <Navigate to="/login" replace />;
 };
 
 const App: React.FC = () => {
@@ -59,7 +57,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard/student"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <StudentDashboard />
               </PrivateRoute>
             }
@@ -67,7 +65,7 @@ const App: React.FC = () => {
           <Route
             path="/student/workouts"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <StudentWorkouts />
               </PrivateRoute>
             }
@@ -75,7 +73,7 @@ const App: React.FC = () => {
           <Route
             path="/student/workout"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <WorkoutOverview />
               </PrivateRoute>
             }
@@ -83,7 +81,7 @@ const App: React.FC = () => {
           <Route
             path="/workout-overview"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <WorkoutOverview />
               </PrivateRoute>
             }
@@ -91,7 +89,7 @@ const App: React.FC = () => {
           <Route
             path="/active-workout"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <ActiveWorkout />
               </PrivateRoute>
             }
@@ -99,7 +97,7 @@ const App: React.FC = () => {
           <Route
             path="/diet"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <DailyDiet />
               </PrivateRoute>
             }
@@ -107,7 +105,7 @@ const App: React.FC = () => {
           <Route
             path="/meal-scan"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <MealScan />
               </PrivateRoute>
             }
@@ -115,7 +113,7 @@ const App: React.FC = () => {
           <Route
             path="/diet/photos"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <DietPhotoGallery />
               </PrivateRoute>
             }
@@ -123,7 +121,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard/perfil"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <StudentProfile />
               </PrivateRoute>
             }
@@ -131,7 +129,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard/perfil/historico"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <TrainingHistory />
               </PrivateRoute>
             }
@@ -139,7 +137,7 @@ const App: React.FC = () => {
           <Route
             path="/student/profile"
             element={
-              <PrivateRoute allowedRole="STUDENT">
+              <PrivateRoute allowedRoles={["STUDENT", "ADMIN"]}>
                 <StudentProfile />
               </PrivateRoute>
             }
@@ -149,7 +147,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard/professional"
             element={
-              <PrivateRoute allowedRole="PROFESSIONAL">
+              <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
                 <ProfessionalDashboard />
               </PrivateRoute>
             }
@@ -157,7 +155,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard/professional/students"
             element={
-              <PrivateRoute allowedRole="PROFESSIONAL">
+              <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
                 <ProfessionalStudents />
               </PrivateRoute>
             }
@@ -165,7 +163,7 @@ const App: React.FC = () => {
           <Route
             path="/assistant"
             element={
-              <PrivateRoute allowedRole="PROFESSIONAL">
+              <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
                 <AIAssistant />
               </PrivateRoute>
             }
@@ -175,7 +173,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard/admin"
             element={
-              <PrivateRoute allowedRole="ADMIN">
+              <PrivateRoute allowedRoles={["ADMIN"]}>
                 <AdminDashboard />
               </PrivateRoute>
             }
@@ -183,7 +181,7 @@ const App: React.FC = () => {
           <Route
             path="/admin/reports"
             element={
-              <PrivateRoute allowedRole="ADMIN">
+              <PrivateRoute allowedRoles={["ADMIN"]}>
                 <AdminReports />
               </PrivateRoute>
             }
@@ -191,7 +189,7 @@ const App: React.FC = () => {
           <Route
             path="/admin/users"
             element={
-              <PrivateRoute allowedRole="ADMIN">
+              <PrivateRoute allowedRoles={["ADMIN"]}>
                 <AdminUsers />
               </PrivateRoute>
             }
@@ -199,7 +197,7 @@ const App: React.FC = () => {
           <Route
             path="/admin/settings"
             element={
-              <PrivateRoute allowedRole="ADMIN">
+              <PrivateRoute allowedRoles={["ADMIN"]}>
                 <AdminSettings />
               </PrivateRoute>
             }

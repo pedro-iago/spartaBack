@@ -23,6 +23,12 @@ import { TREINO_HOJE_ILLUSTRATION_URL } from "@/shared/constants/images";
 export function StudentDashboard() {
   const navigate = useNavigate();
   const [currentStreak] = useState(7);
+  const isAdmin = (() => {
+    try {
+      const u = localStorage.getItem("@sparta:user");
+      return u ? JSON.parse(u).role === "ADMIN" : false;
+    } catch { return false; }
+  })();
 
   const handleLogout = () => {
     localStorage.removeItem("@sparta:user");
@@ -66,15 +72,27 @@ export function StudentDashboard() {
           subtitle="Vamos dominar o dia"
           titleSize="large"
           rightSlot={
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="size-10 sm:size-11 min-h-[44px] min-w-[44px] text-white/60 hover:text-white touch-manipulation rounded-lg"
-              title="Sair"
-            >
-              <LogOut className="size-5 sm:size-6" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/dashboard/admin")}
+                  className="text-[11px] text-white/40 hover:text-white/60 mr-2"
+                  title="Voltar ao painel Admin"
+                >
+                  ← Admin
+                </button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="size-10 sm:size-11 min-h-[44px] min-w-[44px] text-white/60 hover:text-white touch-manipulation rounded-lg"
+                title="Sair"
+              >
+                <LogOut className="size-5 sm:size-6" />
+              </Button>
+            </div>
           }
           children={
             <div className="flex items-center gap-3 bg-white/[0.06] border border-white/10 p-3 sm:p-4 rounded-2xl">

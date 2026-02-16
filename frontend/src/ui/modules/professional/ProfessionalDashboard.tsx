@@ -46,6 +46,13 @@ export function TrainerDashboard() {
     window.location.reload();
   };
 
+  const isAdmin = (() => {
+    try {
+      const u = localStorage.getItem("@sparta:user");
+      return u ? JSON.parse(u).role === "ADMIN" : false;
+    } catch { return false; }
+  })();
+
   const floatingNavItems: FloatingNavItem[] = [
     { icon: <FileText />, label: "Revisões", onClick: () => {} },
     { icon: <Users />, label: "Meus Alunos", onClick: () => navigate("/dashboard/professional/students") },
@@ -84,15 +91,27 @@ export function TrainerDashboard() {
           title="Dashboard do Personal"
           subtitle="Gerencie treinos e acompanhe seus alunos"
           rightSlot={
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="size-10 sm:size-11 min-h-[44px] min-w-[44px] text-white/60 hover:text-white touch-manipulation rounded-lg"
-              title="Sair"
-            >
-              <LogOut className="size-5 sm:size-6" />
-            </Button>
+            <div className="flex items-center gap-1">
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/dashboard/admin")}
+                  className="text-[11px] text-white/40 hover:text-white/60 mr-2"
+                  title="Voltar ao painel Admin"
+                >
+                  ← Admin
+                </button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="size-10 sm:size-11 min-h-[44px] min-w-[44px] text-white/60 hover:text-white touch-manipulation rounded-lg"
+                title="Sair"
+              >
+                <LogOut className="size-5 sm:size-6" />
+              </Button>
+            </div>
           }
         />
 
