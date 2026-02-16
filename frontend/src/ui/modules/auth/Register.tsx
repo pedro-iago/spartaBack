@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { authService } from '../../../shared/services/authService';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { authService } from "../../../shared/services/authService";
 // 🔥 Importamos o contexto para poder logar o usuário automaticamente
-import { useSparta } from '../../../shared/context/SpartaContext';
+import { useSparta } from "../../../shared/context/SpartaContext";
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const { updateUser } = useSparta(); // Hook para atualizar o estado global
   const [loading, setLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -22,7 +22,7 @@ const Register: React.FC = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       alert("Senhas não conferem");
       return;
@@ -30,37 +30,42 @@ const Register: React.FC = () => {
 
     try {
       setLoading(true);
-      
+
       // 1. Cria a conta no Backend
       await authService.register({
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        role: 'STUDENT'
+        role: "STUDENT",
       });
 
       // 2. 🔥 AUTO-LOGIN (A Mágica acontece aqui)
       // Usamos as mesmas credenciais para pegar o token imediatamente
-      const loginData = await authService.login(formData.email, formData.password);
+      const loginData = await authService.login(
+        formData.email,
+        formData.password,
+      );
 
       // 3. Salva no Storage e Atualiza o Contexto
-      localStorage.setItem('@sparta:token', loginData.token);
-      localStorage.setItem('@sparta:user', JSON.stringify({ 
-        name: loginData.name, 
-        role: loginData.role,
-        email: loginData.email 
-      }));
+      localStorage.setItem("@sparta:token", loginData.token);
+      localStorage.setItem(
+        "@sparta:user",
+        JSON.stringify({
+          name: loginData.name,
+          role: loginData.role,
+          email: loginData.email,
+        }),
+      );
 
       updateUser({
         name: loginData.name,
         role: loginData.role,
         email: loginData.email,
-        isAuthenticated: true
+        isAuthenticated: true,
       });
 
       // 4. Redireciona para o início da Anamnese (Objetivos)
-      navigate('/goals');
-
+      navigate("/goals");
     } catch (error) {
       console.error(error);
       alert("Erro ao criar conta. Tente novamente.");
@@ -80,7 +85,9 @@ const Register: React.FC = () => {
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
         <form className="space-y-6" onSubmit={handleRegister}>
           <div>
-            <label className="block text-sm font-medium leading-6 text-white">Nome Completo</label>
+            <label className="block text-sm font-medium leading-6 text-white">
+              Nome Completo
+            </label>
             <div className="mt-2">
               <input
                 name="name"
@@ -93,7 +100,9 @@ const Register: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium leading-6 text-white">Email</label>
+            <label className="block text-sm font-medium leading-6 text-white">
+              Email
+            </label>
             <div className="mt-2">
               <input
                 name="email"
@@ -106,7 +115,9 @@ const Register: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium leading-6 text-white">Senha</label>
+            <label className="block text-sm font-medium leading-6 text-white">
+              Senha
+            </label>
             <div className="mt-2">
               <input
                 name="password"
@@ -119,7 +130,9 @@ const Register: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium leading-6 text-white">Confirmar Senha</label>
+            <label className="block text-sm font-medium leading-6 text-white">
+              Confirmar Senha
+            </label>
             <div className="mt-2">
               <input
                 name="confirmPassword"
@@ -137,14 +150,17 @@ const Register: React.FC = () => {
               disabled={loading}
               className="flex w-full justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-bold leading-6 text-black shadow-sm hover:bg-primary/80 disabled:opacity-50 uppercase tracking-wide"
             >
-              {loading ? 'CRIANDO...' : 'CRIAR CONTA'}
+              {loading ? "CRIANDO..." : "CRIAR CONTA"}
             </button>
           </div>
         </form>
 
         <p className="mt-10 text-center text-sm text-gray-400">
-          Já tem conta?{' '}
-          <Link to="/login" className="font-semibold leading-6 text-primary hover:text-primary/80">
+          Já tem conta?{" "}
+          <Link
+            to="/login"
+            className="font-semibold leading-6 text-primary hover:text-primary/80"
+          >
             Fazer Login
           </Link>
         </p>

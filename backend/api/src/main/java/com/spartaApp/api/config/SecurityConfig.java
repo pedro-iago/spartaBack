@@ -66,9 +66,10 @@ public class SecurityConfig {
         // Permite localhost (Frontend da Colaboradora e seu)
         // Permite IPs de rede local (Seu NAS/Celular)
         configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:5173", // React Vite Local
+                "http://localhost:5173", // React Vite (porta padrão)
+                "http://localhost:3000", // Vite em outra porta
                 "http://localhost:8080", // Própria API
-                "*"                      // Redes locais/Mobile (cuidado em produção, mas ok para dev)
+                "*"                      // Redes locais/Mobile (cuidado em produção)
         ));
 
         // --- MÉTODOS PERMITIDOS ---
