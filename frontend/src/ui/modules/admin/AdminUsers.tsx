@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/ui/components/ui/button";
 import { PageHeader } from "@/ui/components/ui/page-header";
 import { FloatingNav, type FloatingNavItem } from "@/ui/components/ui/floating-nav";
@@ -25,28 +26,50 @@ import {
   Mail,
 } from "lucide-react";
 import { useNavigate } from "react-router";
-
-// Mock: lista de usuários (apenas frontend)
-const mockUsers = [
-  { id: "1", name: "Carlos Silva", email: "carlos@email.com", type: "student", role: "Aluno", status: "active", joinedAt: "2026-01-28" },
-  { id: "2", name: "Ana Santos", email: "ana@email.com", type: "trainer", role: "Personal", status: "active", joinedAt: "2026-01-27" },
-  { id: "3", name: "João Pedro", email: "joao@email.com", type: "student", role: "Aluno", status: "active", joinedAt: "2026-01-26" },
-  { id: "4", name: "Marina Costa", email: "marina@email.com", type: "student", role: "Aluno", status: "inactive", joinedAt: "2026-01-25" },
-  { id: "5", name: "Rafael Oliveira", email: "rafael@email.com", type: "trainer", role: "Personal", status: "active", joinedAt: "2026-01-24" },
-  { id: "6", name: "Fernanda Lima", email: "fernanda@email.com", type: "admin", role: "Admin", status: "active", joinedAt: "2026-01-23" },
-  { id: "7", name: "Pedro Henrique", email: "pedro@email.com", type: "student", role: "Aluno", status: "active", joinedAt: "2026-01-22" },
-  { id: "8", name: "Juliana Alves", email: "juliana@email.com", type: "student", role: "Aluno", status: "inactive", joinedAt: "2026-01-20" },
-];
-
-const stats = {
-  total: 103,
-  active: 89,
-  inactive: 14,
-  newThisMonth: 23,
-};
+import { adminService, type AdminUserDTO } from "@/shared/services/adminService";
 
 export function AdminUsers() {
   const navigate = useNavigate();
+  const [users, setUsers] = useState<AdminUserDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const list = await adminService.listUsers();
+        setUsers(list);
+      } catch {
+        setUsers([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const filteredUsers = useMemo(() => {
+    if (!search.trim()) return users;
+    const q = search.trim().toLowerCase();
+    return users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
+  }, [users, search]);
+
+  const stats = useMemo(() => ({
+    total: users.length,
+    active: users.filter((u) => u.active).length,
+    inactive: users.filter((u) => !u.active).length,
+    newThisMonth: 0,
+  }), [users]);
+
+  const roleLabel = (role: string) => (role === "ADMIN" ? "Admin" : role === "PROFESSIONAL" ? "Personal" : "Aluno");
+
+  const handleToggleStatus = async (user: AdminUserDTO) => {
+    try {
+      await adminService.toggleUserStatus(user.id);
+      setUsers((prev) => prev.map((u) => (u.id === user.id ? { ...u, active: !u.active } : u)));
+    } catch {
+      console.error("Erro ao alterar status");
+    }
+  };
 
   const floatingNavItems: FloatingNavItem[] = [
     { icon: <LayoutDashboard />, label: "Dashboard", onClick: () => navigate("/dashboard/admin") },
@@ -134,6 +157,8 @@ export function AdminUsers() {
                   type="search"
                   placeholder="Buscar usuários..."
                   className="pl-9 bg-white/[0.06] border-white/10 text-white placeholder:text-white/40 h-9"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
             </div>
@@ -150,60 +175,67 @@ export function AdminUsers() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockUsers.map((user) => (
-                    <TableRow key={user.id} className="border-white/[0.06]">
-                      <TableCell className="font-medium text-white/90 text-sm">{user.name}</TableCell>
-                      <TableCell className="text-white/60 text-sm flex items-center gap-1.5">
-                        <Mail className="size-3.5 text-white/40 shrink-0" />
-                        {user.email}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                            user.type === "admin"
-                              ? "bg-primary/20 text-primary"
-                              : user.type === "trainer"
-                                ? "bg-white/10 text-white/80"
-                                : "text-white/50"
-                          }`}
-                        >
-                          {user.role}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`text-[11px] font-medium ${
-                            user.status === "active" ? "text-primary/80" : "text-white/45"
-                          }`}
-                        >
-                          {user.status === "active" ? "Ativo" : "Inativo"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-white/50 text-sm">
-                        {new Date(user.joinedAt).toLocaleDateString("pt-BR")}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-white/50 hover:text-white/80"
-                            title="Ver detalhes"
-                          >
-                            <MoreHorizontal className="size-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-white/50 hover:text-destructive/80"
-                            title="Desativar"
-                          >
-                            <Ban className="size-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                  {loading ? (
+                    <TableRow className="border-white/[0.06]">
+                      <TableCell colSpan={6} className="text-center text-white/50 py-8">Carregando...</TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    filteredUsers.map((user) => (
+                      <TableRow key={user.id} className="border-white/[0.06]">
+                        <TableCell className="font-medium text-white/90 text-sm">{user.name}</TableCell>
+                        <TableCell className="text-white/60 text-sm flex items-center gap-1.5">
+                          <Mail className="size-3.5 text-white/40 shrink-0" />
+                          {user.email}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
+                              user.role === "ADMIN"
+                                ? "bg-primary/20 text-primary"
+                                : user.role === "PROFESSIONAL"
+                                  ? "bg-white/10 text-white/80"
+                                  : "text-white/50"
+                            }`}
+                          >
+                            {roleLabel(user.role)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`text-[11px] font-medium ${
+                              user.active ? "text-primary/80" : "text-white/45"
+                            }`}
+                          >
+                            {user.active ? "Ativo" : "Inativo"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-white/50 text-sm">
+                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString("pt-BR") : "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-white/50 hover:text-white/80"
+                              title="Ver detalhes"
+                            >
+                              <MoreHorizontal className="size-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-white/50 hover:text-destructive/80"
+                              title={user.active ? "Desativar" : "Ativar"}
+                              onClick={() => handleToggleStatus(user)}
+                            >
+                              <Ban className="size-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>

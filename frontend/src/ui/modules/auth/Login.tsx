@@ -31,10 +31,11 @@ export function Login() {
     setError("");
 
     try {
-      // 1. Chamada real ao Backend Java
+      // 1. Chamada real ao Backend Java (retorna { name, role, token })
       const response = await authService.login(formData.email, formData.password);
       
-      const { token, user } = response;
+      const { token, name, role } = response;
+      const user = { name, email: formData.email, role: role as 'ADMIN' | 'PROFESSIONAL' | 'STUDENT' };
 
       // 2. Salva Token e Usuário
       localStorage.setItem('@sparta:token', token);
@@ -46,8 +47,8 @@ export function Login() {
         isAuthenticated: true
       });
 
-      // 4. 🔥 O ROTEAMENTO INTELIGENTE BASEADO NA ROLE 🔥
-      switch (user.role) {
+      // 4. Roteamento por role
+      switch (role) {
         case 'ADMIN':
           navigate('/dashboard/admin');
           break;

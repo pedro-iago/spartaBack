@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/ui/components/ui/button";
 import { Input } from "@/ui/components/ui/input";
 import { PageHeader } from "@/ui/components/ui/page-header";
@@ -17,22 +17,28 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { useNavigate } from "react-router";
-
-interface WorkoutReview {
-  id: string;
-  studentName: string;
-  studentAvatar: string;
-  workoutName: string;
-  generatedBy: "AI";
-  status: "draft" | "pending" | "active";
-  createdAt: string;
-  description: string;
-}
+import { trainingService } from "@/shared/services/trainingService";
+import type { TrainingResponseDTO } from "@/shared/types";
 
 export function TrainerDashboard() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<"all" | "draft" | "pending" | "active">("all");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [trainings, setTrainings] = useState<TrainingResponseDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const list = await trainingService.getPendingTrainings();
+        setTrainings(list);
+      } catch {
+        setTrainings([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("@sparta:user");
@@ -47,77 +53,29 @@ export function TrainerDashboard() {
     { icon: <LogOut />, label: "Sair", onClick: handleLogout },
   ];
 
-  const mockReviews: WorkoutReview[] = [
-    {
-      id: "1",
-      studentName: "Carlos Silva",
-      studentAvatar: "CS",
-      workoutName: "Hipertrofia Push A",
-      generatedBy: "AI",
-      status: "draft",
-      createdAt: "Há 2 horas",
-      description: "Treino de peito, ombros e tríceps focado em hipertrofia",
-    },
-    {
-      id: "2",
-      studentName: "Ana Santos",
-      studentAvatar: "AS",
-      workoutName: "Leg Day - Força",
-      generatedBy: "AI",
-      status: "pending",
-      createdAt: "Há 5 horas",
-      description: "Treino de pernas com foco em força e potência",
-    },
-    {
-      id: "3",
-      studentName: "João Pedro",
-      studentAvatar: "JP",
-      workoutName: "Pull Workout",
-      generatedBy: "AI",
-      status: "draft",
-      createdAt: "Há 1 dia",
-      description: "Treino de costas e bíceps para hipertrofia",
-    },
-    {
-      id: "4",
-      studentName: "Marina Costa",
-      studentAvatar: "MC",
-      workoutName: "HIIT Cardio",
-      generatedBy: "AI",
-      status: "active",
-      createdAt: "Há 2 dias",
-      description: "Treino cardiovascular de alta intensidade",
-    },
-    {
-      id: "5",
-      studentName: "Rafael Oliveira",
-      studentAvatar: "RO",
-      workoutName: "Upper Body - Strength",
-      generatedBy: "AI",
-      status: "pending",
-      createdAt: "Há 3 horas",
-      description: "Treino de membros superiores focado em força",
-    },
-  ];
+  const mapStatus = (s: string): "draft" | "pending" | "active" => {
+    if (s === "ACTIVE") return "active";
+    if (s === "PENDING_APPROVAL") return "pending";
+    return "draft";
+  };
 
   const stats = {
-    totalStudents: 24,
-    pendingReviews: mockReviews.filter(r => r.status === "draft" || r.status === "pending").length,
-    activeWorkouts: mockReviews.filter(r => r.status === "active").length,
+    totalStudents: trainings.length,
+    pendingReviews: trainings.filter((t) => t.status === "PENDING_APPROVAL" || t.status === "DRAFT").length,
+    activeWorkouts: trainings.filter((t) => t.status === "ACTIVE").length,
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "draft": return <span className="text-[11px] font-medium text-white/45">Draft</span>;
-      case "pending": return <span className="text-[11px] font-medium text-primary/80">Pendente</span>;
-      case "active": return <span className="text-[11px] font-medium text-primary/80">Ativo</span>;
-      default: return null;
-    }
+    const s = mapStatus(status);
+    if (s === "draft") return <span className="text-[11px] font-medium text-white/45">Draft</span>;
+    if (s === "pending") return <span className="text-[11px] font-medium text-primary/80">Pendente</span>;
+    if (s === "active") return <span className="text-[11px] font-medium text-primary/80">Ativo</span>;
+    return null;
   };
 
-  const filteredReviews = filter === "all" 
-    ? mockReviews 
-    : mockReviews.filter(r => r.status === filter);
+  const filteredReviews = filter === "all"
+    ? trainings
+    : trainings.filter((t) => mapStatus(t.status) === filter);
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-page-dark">
@@ -247,55 +205,63 @@ export function TrainerDashboard() {
                   : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3"
               }
             >
-              {filteredReviews.map((review) => (
-                <div
-                  key={review.id}
-                  className="glass-card-3d rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col h-full"
-                >
-                  <div className="flex flex-col gap-3 sm:gap-0 sm:flex-row sm:items-start sm:justify-between flex-shrink-0">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="bg-white/[0.08] rounded-full size-9 sm:size-10 flex items-center justify-center shrink-0">
-                        <span className="text-xs sm:text-sm font-semibold text-primary/80">{review.studentAvatar}</span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-white/95 truncate text-sm sm:text-base">{review.studentName}</h3>
-                        <p className="text-[10px] sm:text-[11px] text-white/45">{review.createdAt}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-2">
-                      {getStatusLabel(review.status)}
-                    </div>
-                  </div>
-                  <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.06] flex-1 min-h-0">
-                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                      <Sparkles className="size-3.5 text-primary/60 shrink-0" />
-                      <h4 className="font-medium text-white/90 text-xs sm:text-sm truncate">{review.workoutName}</h4>
-                      <span className="text-[10px] font-medium text-white/45">IA</span>
-                    </div>
-                    <p className="text-[11px] sm:text-xs text-white/55 line-clamp-2">{review.description}</p>
-                  </div>
-                  <div className="mt-3 flex flex-row gap-2 flex-shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex-1 text-white/70 hover:text-white hover:bg-white/[0.06] min-h-[44px] sm:min-h-8 h-auto py-2 text-xs sm:text-sm touch-manipulation"
-                      onClick={() => navigate("/trainer/edit-workout")}
+              {loading ? (
+                <div className="col-span-full text-center text-white/50 py-8">Carregando...</div>
+              ) : (
+                filteredReviews.map((review) => {
+                  const initials = review.userName?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() ?? "?";
+                  const created = review.createdAt ? new Date(review.createdAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : "";
+                  return (
+                    <div
+                      key={review.id}
+                      className="glass-card-3d rounded-xl sm:rounded-2xl p-3 sm:p-5 flex flex-col h-full"
                     >
-                      <Eye className="mr-2 size-3.5 shrink-0" />
-                      Revisar
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="flex-1 rounded-xl font-medium min-h-[44px] sm:min-h-8 h-auto py-2 text-xs sm:text-sm touch-manipulation"
-                      onClick={() => navigate("/trainer/edit-workout")}
-                    >
-                      <ThumbsUp className="mr-2 size-3.5 shrink-0" />
-                      Aprovar
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                      <div className="flex flex-col gap-3 sm:gap-0 sm:flex-row sm:items-start sm:justify-between flex-shrink-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="bg-white/[0.08] rounded-full size-9 sm:size-10 flex items-center justify-center shrink-0">
+                            <span className="text-xs sm:text-sm font-semibold text-primary/80">{initials}</span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-medium text-white/95 truncate text-sm sm:text-base">{review.userName}</h3>
+                            <p className="text-[10px] sm:text-[11px] text-white/45">{created}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between sm:justify-end gap-2">
+                          {getStatusLabel(review.status)}
+                        </div>
+                      </div>
+                      <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/[0.06] flex-1 min-h-0">
+                        <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                          <Sparkles className="size-3.5 text-primary/60 shrink-0" />
+                          <h4 className="font-medium text-white/90 text-xs sm:text-sm truncate">Treino {review.focus}</h4>
+                          <span className="text-[10px] font-medium text-white/45">IA</span>
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-white/55 line-clamp-2">{review.limitations || "Sem observações"}</p>
+                      </div>
+                      <div className="mt-3 flex flex-row gap-2 flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="flex-1 text-white/70 hover:text-white hover:bg-white/[0.06] min-h-[44px] sm:min-h-8 h-auto py-2 text-xs sm:text-sm touch-manipulation"
+                          onClick={() => navigate("/trainer/edit-workout", { state: { trainingId: review.id } })}
+                        >
+                          <Eye className="mr-2 size-3.5 shrink-0" />
+                          Revisar
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="flex-1 rounded-xl font-medium min-h-[44px] sm:min-h-8 h-auto py-2 text-xs sm:text-sm touch-manipulation"
+                          onClick={() => navigate("/trainer/edit-workout", { state: { trainingId: review.id } })}
+                        >
+                          <ThumbsUp className="mr-2 size-3.5 shrink-0" />
+                          Aprovar
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </section>
         </div>

@@ -47,7 +47,7 @@ export interface UseStudentWorkoutPlanResult {
   refetch: () => Promise<void>;
 }
 
-const USE_MOCK = true; // trocar para false quando o backend estiver pronto
+const USE_MOCK = false; // true = dados locais; false = GET /trainings/my-active
 
 export function useStudentWorkoutPlan(): UseStudentWorkoutPlanResult {
   const [scheduledWorkouts, setScheduledWorkouts] = useState<ScheduledWorkout[]>(MOCK_PLAN);
@@ -57,10 +57,23 @@ export function useStudentWorkoutPlan(): UseStudentWorkoutPlanResult {
     if (USE_MOCK) return;
     setIsLoading(true);
     try {
-      const res = await trainingService.getMyWorkoutPlan();
-      setScheduledWorkouts(res.scheduledWorkouts ?? []);
+      const training = await trainingService.getMyActiveTraining();
+      if (training) {
+        const today = getTodayDayOfWeek();
+        const workout: ScheduledWorkout = {
+          id: training.id,
+          dayOfWeek: today,
+          name: `Treino ${training.focus} (${training.sets?.length ?? 0} séries)`,
+          durationMinutes: 50,
+          workoutId: training.id,
+          completed: false,
+        };
+        setScheduledWorkouts([workout]);
+      } else {
+        setScheduledWorkouts([]);
+      }
     } catch {
-      setScheduledWorkouts(MOCK_PLAN);
+      setScheduledWorkouts([]);
     } finally {
       setIsLoading(false);
     }

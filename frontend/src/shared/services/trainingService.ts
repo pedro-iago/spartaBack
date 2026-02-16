@@ -1,15 +1,26 @@
 import { apiClient } from '../api/apiClient';
-import type { StudentWorkoutPlanResponse, CreateTrainingDTO } from '../types';
+import type { CreateTrainingDTO, TrainingResponseDTO } from '../types';
 
 export const trainingService = {
-  createRequest: async (data: CreateTrainingDTO) => {
-    const { data: response } = await apiClient.post('/trainings', data);
+  /** POST /trainings/request - Solicita novo treino (aluno) */
+  createRequest: async (data: CreateTrainingDTO): Promise<TrainingResponseDTO> => {
+    const { data: response } = await apiClient.post<TrainingResponseDTO>('/trainings/request', data);
     return response;
   },
 
-  /** Plano de treinos da semana (seg a dom) passado pelo personal. Endpoint: GET /student/workout-plan */
-  getMyWorkoutPlan: async (): Promise<StudentWorkoutPlanResponse> => {
-    const { data } = await apiClient.get<StudentWorkoutPlanResponse>('/student/workout-plan');
-    return data;
+  /** GET /trainings/my-active - Treino ativo do aluno logado */
+  getMyActiveTraining: async (): Promise<TrainingResponseDTO | null> => {
+    try {
+      const { data } = await apiClient.get<TrainingResponseDTO>('/trainings/my-active');
+      return data;
+    } catch {
+      return null;
+    }
+  },
+
+  /** GET /trainings/pending - Lista treinos pendentes de aprovação (personal) */
+  getPendingTrainings: async (): Promise<TrainingResponseDTO[]> => {
+    const { data } = await apiClient.get<TrainingResponseDTO[]>('/trainings/pending');
+    return data ?? [];
   },
 };

@@ -13,12 +13,12 @@ export const useAuthLogic = () => {
       
       const data = await authService.login(email, password);
       
-      // Salva token
+      // Salva token (backend retorna name, role, token; email vem do parâmetro)
       localStorage.setItem('@sparta:token', data.token);
       localStorage.setItem('@sparta:user', JSON.stringify({ 
         name: data.name, 
         role: data.role,
-        email: data.email 
+        email 
       }));
       
       return data;

@@ -50,10 +50,11 @@ export interface User {
     role: UserRole;
 }
 
-/** Resposta do endpoint /auth/login */
+/** Resposta do endpoint /auth/login (backend retorna name, role, token) */
 export interface LoginResponseDTO {
+    name: string;
+    role: string;
     token: string;
-    user: User;
 }
 
 // --- DOMÍNIO FITNESS (Mantido) ---
@@ -158,9 +159,40 @@ export interface StudentWorkoutPlanResponse {
     scheduledWorkouts: ScheduledWorkout[];
 }
 
+/** Payload para POST /trainings/request (backend espera level/focus como string) */
 export interface CreateTrainingDTO {
-    level: ExperienceLevel;
-    focus: Goal;
+    level: string;   // BEGINNER | INTERMEDIATE | ADVANCED
+    focus: string;   // HYPERTROPHY | STRENGTH | ENDURANCE (ou WEIGHT_LOSS, CONDITIONING)
     daysPerWeek: number;
     limitations: string;
+}
+
+/** Resposta GET /trainings/my-active e POST /trainings/request */
+export interface TrainingSetDTO {
+    id: string;
+    exerciseId: string;
+    exerciseName: string;
+    dayLetter: string;
+    exerciseOrder: number;
+    sets: number;
+    reps: string;
+    restSeconds: number;
+    loadPrescription: string;
+    technique: string;
+    notes: string;
+    createdAt: string;
+}
+
+export interface TrainingResponseDTO {
+    id: string;
+    userId: string;
+    userName: string;
+    level: string;
+    focus: string;
+    daysPerWeek: number;
+    limitations: string;
+    status: string; // DRAFT, PENDING_APPROVAL, ACTIVE, COMPLETED, ARCHIVED
+    sets: TrainingSetDTO[];
+    createdAt: string;
+    updatedAt: string;
 }

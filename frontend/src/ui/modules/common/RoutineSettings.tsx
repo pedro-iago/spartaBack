@@ -15,12 +15,17 @@ const RoutineSettings: React.FC = () => {
   const handleGenerateProtocol = async () => {
     setLoading(true);
     try {
-      // 1. Envia os dados REAIS para o Java
+      // Backend espera level: BEGINNER | INTERMEDIATE | ADVANCED; focus: HYPERTROPHY | STRENGTH | ENDURANCE
+      const levelMap: Record<string, string> = {
+        [ExperienceLevel.BEGINNER]: 'BEGINNER',
+        [ExperienceLevel.INTERMEDIATE]: 'INTERMEDIATE',
+        [ExperienceLevel.ADVANCED]: 'ADVANCED',
+      };
       await trainingService.createRequest({
-          level: user.level,
-          focus: user.goal, // Vem da tela anterior (GoalSelection)
-          daysPerWeek: user.frequency,
-          limitations: limitations || "Nenhuma" // Envia o texto digitado
+          level: levelMap[user.level ?? ''] ?? 'BEGINNER',
+          focus: (user.goal as string) ?? 'HYPERTROPHY',
+          daysPerWeek: user.frequency ?? 3,
+          limitations: limitations || "Nenhuma"
       });
 
       alert("Solicitação enviada! Seu personal irá analisar.");
