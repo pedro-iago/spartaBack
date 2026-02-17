@@ -65,7 +65,7 @@ const Register: React.FC = () => {
       });
 
       // 4. Redireciona para o início da Anamnese (Objetivos)
-      navigate("/goals");
+      navigate("/goal");
     } catch (error) {
       console.error(error);
       alert("Erro ao criar conta. Tente novamente.");

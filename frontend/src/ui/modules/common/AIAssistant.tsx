@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/ui/components/ui/button";
 import { PageHeader } from "@/ui/components/ui/page-header";
-import { ArrowLeft, Send, Mic, Plus } from "lucide-react";
+import { assistantService } from "@/shared/services/assistantService";
+import { ArrowLeft, Send, Mic, Plus, Loader2 } from "lucide-react";
 
 type MessageRole = "user" | "assistant";
 
@@ -10,40 +11,67 @@ interface Message {
   id: string;
   role: MessageRole;
   content: string;
+  loading?: boolean;
 }
 
-const MOCK_MESSAGES: Message[] = [
-  {
-    id: "1",
-    role: "assistant",
-    content: "Olá. Sou o assistente da Sparta Fitness AI. Posso ajudar com planejamento de treinos, sugestões de exercícios e dúvidas sobre a plataforma. Como posso ajudar?",
-  },
-  {
-    id: "2",
-    role: "user",
-    content: "Pode sugerir um treino de pernas para iniciante?",
-  },
-  {
-    id: "3",
-    role: "assistant",
-    content: "Claro. Para iniciantes, um bom treino de pernas pode incluir agachamento livre (3x12), leg press (3x12), cadeira extensora (3x12) e panturrilha em pé (3x15). Sempre aquecendo antes e respeitando o descanso entre séries. Quer que eu monte isso no seu plano?",
-  },
-];
+const WELCOME_MESSAGE: Message = {
+  id: "welcome",
+  role: "assistant",
+  content: "Olá. Sou o assistente de treinos da Sparta. Diga o grupo muscular (pernas, costas, peito) ou objetivo (emagrecer, hipertrofia) e eu sugiro um treino.",
+};
 
 export function AIAssistant() {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const listEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    listEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = input.trim();
-    if (!text) return;
-    setMessages((prev) => [
-      ...prev,
-      { id: String(prev.length + 1), role: "user", content: text },
-    ]);
+    if (!text || loading) return;
+
+    const userMsg: Message = { id: `u-${Date.now()}`, role: "user", content: text };
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setLoading(true);
+
+    const history = [
+      ...messages.filter((m) => !m.loading).map((m) => ({ role: m.role, content: m.content })),
+      { role: "user" as const, content: text },
+    ];
+
+    const loadingId = `load-${Date.now()}`;
+    setMessages((prev) => [...prev, { id: loadingId, role: "assistant", content: "", loading: true }]);
+
+    try {
+      const res = await assistantService.chat({ message: text, history });
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === loadingId
+            ? { ...m, content: res.content, loading: false }
+            : m
+        )
+      );
+    } catch (err: unknown) {
+      const errMsg = err && typeof err === "object" && "message" in err
+        ? String((err as { message: unknown }).message)
+        : "Não foi possível obter resposta. Tente de novo.";
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === loadingId
+            ? { ...m, content: errMsg, loading: false }
+            : m
+        )
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -94,9 +122,16 @@ export function AIAssistant() {
                 <div key={msg.id} className="flex gap-3 justify-start">
                   <div className="ai-orbe-bubble shrink-0 mt-2" aria-hidden />
                   <div className="ai-message-assistant rounded-2xl rounded-tl-md px-4 py-3 sm:px-5 sm:py-4 max-w-[90%] sm:max-w-[85%] min-w-0">
-                    <p className="text-[15px] sm:text-base text-white/90 leading-[1.6] sm:leading-relaxed">
-                      {msg.content}
-                    </p>
+                    {msg.loading ? (
+                      <p className="text-[15px] sm:text-base text-white/70 flex items-center gap-2">
+                        <Loader2 className="size-4 animate-spin shrink-0" />
+                        Pensando...
+                      </p>
+                    ) : (
+                      <p className="text-[15px] sm:text-base text-white/90 leading-[1.6] sm:leading-relaxed">
+                        {msg.content}
+                      </p>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -109,6 +144,7 @@ export function AIAssistant() {
                 </div>
               )
             )}
+            <div ref={listEndRef} />
           </main>
 
           {/* Input — barra única estilo Aura */}
@@ -128,7 +164,7 @@ export function AIAssistant() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Digite sua mensagem..."
+                placeholder="Ex: treino de pernas, costas, emagrecer..."
                 className="flex-1 min-w-0 bg-transparent border-0 text-white placeholder:text-white/35 text-[15px] sm:text-base focus:outline-none focus:ring-0 touch-manipulation"
                 aria-label="Mensagem"
                 autoComplete="off"
@@ -144,10 +180,11 @@ export function AIAssistant() {
             <Button
               type="submit"
               size="icon"
-              className="shrink-0 size-12 rounded-full min-h-[48px] min-w-[48px] bg-primary hover:bg-primary/90 border-0 text-[#171512] font-semibold shadow-[0_0_24px_rgba(213,159,57,0.35)] transition-all duration-200 active:scale-95 touch-manipulation"
+              disabled={loading}
+              className="shrink-0 size-12 rounded-full min-h-[48px] min-w-[48px] bg-primary hover:bg-primary/90 border-0 text-[#171512] font-semibold shadow-[0_0_24px_rgba(213,159,57,0.35)] transition-all duration-200 active:scale-95 touch-manipulation disabled:opacity-70"
               aria-label="Enviar"
             >
-              <Send className="size-5" />
+              {loading ? <Loader2 className="size-5 animate-spin" /> : <Send className="size-5" />}
             </Button>
           </form>
         </div>

@@ -19,15 +19,15 @@ const Dashboard: React.FC = () => {
   // ROTEAMENTO DE VISUALIZAÇÃO
   switch (user.role) {
     case UserRole.ADMIN:
-        return <AdminDashboard />;
-        
-    case UserRole.PROFESSIONAL:
-        return <ProfessionalDashboard />;
-        
+      return <AdminDashboard />;
+
+    case UserRole.PERSONAL:
+      return <ProfessionalDashboard />;
+
     case UserRole.STUDENT:
     default:
-        // Se for aluno (ou indefinido), mostra a tela clássica
-        return <StudentDashboard />;
+      // Se for aluno (ou indefinido), mostra a tela clássica
+      return <StudentDashboard />;
   }
 };
 

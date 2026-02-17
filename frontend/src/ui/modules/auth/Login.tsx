@@ -35,7 +35,7 @@ export function Login() {
       const response = await authService.login(formData.email, formData.password);
       
       const { token, name, role } = response;
-      const user = { name, email: formData.email, role: role as 'ADMIN' | 'PROFESSIONAL' | 'STUDENT' };
+      const user = { name, email: formData.email, role: role as 'ADMIN' | 'PERSONAL' | 'STUDENT' };
 
       // 2. Salva Token e Usuário
       localStorage.setItem('@sparta:token', token);
@@ -52,7 +52,7 @@ export function Login() {
         case 'ADMIN':
           navigate('/dashboard/admin');
           break;
-        case 'PROFESSIONAL':
+        case 'PERSONAL':
           navigate('/dashboard/professional');
           break;
         case 'STUDENT':

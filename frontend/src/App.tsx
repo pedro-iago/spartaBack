@@ -167,7 +167,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard/professional"
             element={
-              <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+              <PrivateRoute allowedRoles={["PERSONAL", "ADMIN"]}>
                 <ProfessionalDashboard />
               </PrivateRoute>
             }
@@ -175,7 +175,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard/professional/solicitacoes"
             element={
-              <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+              <PrivateRoute allowedRoles={["PERSONAL", "ADMIN"]}>
                 <ProfessionalSolicitacoes />
               </PrivateRoute>
             }
@@ -183,7 +183,7 @@ const App: React.FC = () => {
           <Route
             path="/dashboard/professional/students"
             element={
-              <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+              <PrivateRoute allowedRoles={["PERSONAL", "ADMIN"]}>
                 <ProfessionalStudents />
               </PrivateRoute>
             }
@@ -191,7 +191,7 @@ const App: React.FC = () => {
           <Route
             path="/assistant"
             element={
-              <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+              <PrivateRoute allowedRoles={["PERSONAL", "ADMIN"]}>
                 <AIAssistant />
               </PrivateRoute>
             }
@@ -199,7 +199,7 @@ const App: React.FC = () => {
           <Route
             path="/trainer/edit-workout"
             element={
-              <PrivateRoute allowedRoles={["PROFESSIONAL", "ADMIN"]}>
+              <PrivateRoute allowedRoles={["PERSONAL", "ADMIN"]}>
                 <InstructorReview />
               </PrivateRoute>
             }

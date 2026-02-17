@@ -53,14 +53,18 @@ export function AdminUsers() {
     return users.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
   }, [users, search]);
 
-  const stats = useMemo(() => ({
-    total: users.length,
-    active: users.filter((u) => u.active).length,
-    inactive: users.filter((u) => !u.active).length,
-    newThisMonth: 0,
-  }), [users]);
+  const stats = useMemo(
+    () => ({
+      total: users.length,
+      active: users.filter((u) => u.active).length,
+      inactive: users.filter((u) => !u.active).length,
+      newThisMonth: 0,
+    }),
+    [users],
+  );
 
-  const roleLabel = (role: string) => (role === "ADMIN" ? "Admin" : role === "PROFESSIONAL" ? "Personal" : "Aluno");
+  const roleLabel = (role: string) =>
+    role === "ADMIN" ? "Admin" : role === "PERSONAL" ? "Personal" : "Aluno";
 
   const handleToggleStatus = async (user: AdminUserDTO) => {
     try {
@@ -192,7 +196,7 @@ export function AdminUsers() {
                             className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
                               user.role === "ADMIN"
                                 ? "bg-primary/20 text-primary"
-                                : user.role === "PROFESSIONAL"
+                                : user.role === "PERSONAL"
                                   ? "bg-white/10 text-white/80"
                                   : "text-white/50"
                             }`}

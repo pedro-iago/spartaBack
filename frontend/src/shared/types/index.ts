@@ -1,7 +1,7 @@
 // --- ENUMS (Domínio) ---
 export enum UserRole {
     ADMIN = 'ADMIN',
-    PROFESSIONAL = 'PROFESSIONAL',
+    PERSONAL = 'PERSONAL',
     STUDENT = 'STUDENT'
 }
 

@@ -86,7 +86,7 @@ export function AdminDashboard() {
 
   const roleLabel = (role: string) => {
     if (role === "ADMIN") return "Admin";
-    if (role === "PROFESSIONAL") return "Personal";
+    if (role === "PERSONAL") return "Personal";
     return "Aluno";
   };
 
@@ -255,7 +255,7 @@ export function AdminDashboard() {
                       <TableCell className="font-medium text-white/90 text-sm">{user.name}</TableCell>
                       <TableCell className="text-white/60 text-sm">{user.email}</TableCell>
                       <TableCell>
-                        <span className={`text-[11px] font-medium ${user.role === "PROFESSIONAL" ? "text-primary/80" : user.role === "ADMIN" ? "text-primary" : "text-white/50"}`}>
+                        <span className={`text-[11px] font-medium ${user.role === "PERSONAL" ? "text-primary/80" : user.role === "ADMIN" ? "text-primary" : "text-white/50"}`}>
                           {roleLabel(user.role)}
                         </span>
                       </TableCell>

@@ -52,12 +52,16 @@ public class SecurityConfig {
                         // 4. Swagger / Docs (Opcional, bom deixar liberado em dev)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // 5. Rotas do Personal (ADMIN pode acessar como “página Personal”)
+                        // 5. Assistente (chat) — permitAll; auth checada no controller
+                        .requestMatchers(HttpMethod.POST, "/assistant/chat").permitAll()
+                        .requestMatchers("/assistant/**").permitAll()
+
+                        // 6. Rotas do Personal (ADMIN pode acessar como “página Personal”)
                         .requestMatchers(HttpMethod.GET, "/trainings/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/trainings/*").authenticated()
                         .requestMatchers(HttpMethod.POST, "/trainings/*/approve").authenticated()
 
-                        // 6. Todo o resto exige autenticação
+                        // 7. Todo o resto exige autenticação
                         .anyRequest().authenticated()
                 )
                 // JWT antes da decisão de autorização (403); lê Authorization: Bearer
