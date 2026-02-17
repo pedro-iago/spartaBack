@@ -4,6 +4,7 @@ import { SpartaProvider } from "./shared/context/SpartaContext";
 
 // Auth & Selection
 import { Login } from "./ui/modules/auth/Login";
+import Register from "./ui/modules/auth/Register";
 
 // Aluno (Student)
 import { StudentDashboard } from "./ui/modules/student/StudentDashboard";
@@ -56,6 +57,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
           {/* Domínio Aluno */}
           <Route
